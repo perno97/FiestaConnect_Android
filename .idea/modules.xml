@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/FiestaConnect.iml" filepath="$PROJECT_DIR$/FiestaConnect.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libs/sdl_android-4.3.1/sdl_android/sdl_android.iml" filepath="$PROJECT_DIR$/libs/sdl_android-4.3.1/sdl_android/sdl_android.iml" />
+    </modules>
+  </component>
+</project>

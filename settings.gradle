@@ -1,0 +1,2 @@
+include ':app', ':sdl_android'
+project(':sdl_android').projectDir = new File('libs/sdl_android-4.3.1/sdl_android')
