@@ -9,5 +9,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //If we are connected to a module we want to start our SdlService
+        SdlReceiver.queryForConnectedService(this);
     }
 }

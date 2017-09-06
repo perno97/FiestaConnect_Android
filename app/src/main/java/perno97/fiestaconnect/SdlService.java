@@ -131,7 +131,19 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnHMIStatus(OnHMIStatus notification) {
-
+        switch(notification.getHmiLevel()) {
+            case HMI_FULL:
+                //TODO send welcome message, addcommands, subscribe to buttons ect
+                break;
+            case HMI_LIMITED:
+                break;
+            case HMI_BACKGROUND:
+                break;
+            case HMI_NONE:
+                break;
+            default:
+                return;
+        }
     }
 
     @Override
