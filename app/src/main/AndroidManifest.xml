@@ -25,6 +25,12 @@
             android:process="com.smartdevicelink.router">
         </service>
 
+        <service
+        android:name="perno97.fiestaconnect.SdlRouterService"
+        android:exported="true"
+        android:process="com.smartdevicelink.router">
+        </service>
+
         <receiver
             android:name=".SdlReceiver"
             android:exported="true"
