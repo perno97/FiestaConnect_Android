@@ -70,6 +70,7 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
+import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.TransportConstants;
 
 public class SdlService extends Service implements IProxyListenerALM {
@@ -85,7 +86,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 //Create a new proxy using Bluetooth transport
                 //The listener, app name,
                 //whether or not it is a media app and the applicationId are supplied.
-                proxy = new SdlProxyALM(this.getBaseContext(),this, "Hello SDL App", true, "8675309");
+                proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, "8675309");
             } catch (SdlException e) {
                 //There was an error creating the proxy
                 if (proxy == null) {
@@ -134,6 +135,12 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch(notification.getHmiLevel()) {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
+                try {
+                    proxy.show("Titolo", "Sottotitolo", TextAlignment.CENTERED, 0);
+                    proxy.speak("Ciao Perno", 1);
+                } catch (SdlException e) {
+                    e.printStackTrace();
+                }
                 break;
             case HMI_LIMITED:
                 break;
