@@ -135,11 +135,13 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch(notification.getHmiLevel()) {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
-                try {
-                    proxy.show("Titolo", "Sottotitolo", TextAlignment.CENTERED, 0);
-                    proxy.speak("Ciao Perno", 1);
-                } catch (SdlException e) {
-                    e.printStackTrace();
+                if(notification.getFirstRun()) {
+                    try {
+                        proxy.show("Perno", "Pro", TextAlignment.CENTERED, 0);
+                        proxy.speak("Ciao Perno", 0);
+                    } catch (SdlException e) {
+                        e.printStackTrace();
+                    }
                 }
                 break;
             case HMI_LIMITED:
