@@ -1,6 +1,7 @@
 package perno97.fiestaconnect;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -69,6 +70,7 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
+import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.TransportConstants;
@@ -77,16 +79,31 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
+    private static String EXTRA_TITLE = "extra-title";
+    private static String EXTRA_SUBTITLE = "extra-subtitle";
+    private static String DEFAULT_TITLE = "FiestaConnect";
+    private static String DEFAULT_SUBTITLE = "Hello world!!!";
+    String title;
+    String subtitle;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
+        String titleExtra = intent.getStringExtra(EXTRA_TITLE);
+        String subtitleExtra = intent.getStringExtra(EXTRA_SUBTITLE);
+
+        if(titleExtra != null) title = titleExtra;
+        else title = DEFAULT_TITLE;
+
+        if(subtitleExtra != null) subtitle = subtitleExtra;
+        else subtitle = DEFAULT_SUBTITLE;
+
         if (proxy == null) {
             try {
                 //Create a new proxy using Bluetooth transport
                 //The listener, app name,
                 //whether or not it is a media app and the applicationId are supplied.
-                proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, "8675309");
+                proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, Language.IT_IT, Language.IT_IT, "8675309");
             } catch (SdlException e) {
                 //There was an error creating the proxy
                 if (proxy == null) {
@@ -100,6 +117,19 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         //use START_STICKY because we want the SDLService to be explicitly started and stopped as needed.
         return START_STICKY;
+    }
+
+    /**
+     * Getter for correct intent to this service.
+     * @param title Title to show
+     * @param subtitle Subtitle to show
+     * @return
+     */
+    public static Intent getIntent(Context context, String title, String subtitle){
+        Intent intent = new Intent(context, SdlService.class);
+        intent.putExtra(EXTRA_TITLE,title);
+        intent.putExtra(EXTRA_SUBTITLE,subtitle);
+        return intent;
     }
 
     @Override
@@ -137,11 +167,15 @@ public class SdlService extends Service implements IProxyListenerALM {
                 //TODO send welcome message, addcommands, subscribe to buttons ect
                 if(notification.getFirstRun()) {
                     try {
-                        proxy.show("Perno", "Pro", TextAlignment.CENTERED, 0);
                         proxy.speak("Ciao Perno", 0);
                     } catch (SdlException e) {
-                        e.printStackTrace();
+                        //TODO notificare errore
                     }
+                }
+                try {
+                    proxy.show(title, subtitle, TextAlignment.CENTERED, 0);
+                } catch (SdlException e) {
+                    //TODO notificare errore
                 }
                 break;
             case HMI_LIMITED:

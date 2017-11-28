@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">FiestaConnect</string>
     <string name="txtMain">Info</string>
+    <string name="txtTitleHint">Titolo</string>
+    <string name="txtSubtHint">Sottotitolo</string>
+    <string name="btnSendText">Invia</string>
 </resources>
