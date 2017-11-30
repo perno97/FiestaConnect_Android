@@ -78,6 +78,8 @@ import com.smartdevicelink.transport.TransportConstants;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
+    private static final int ASSISTANT_CMD_ID = 0;
+    private static final String ASSISTANT_CMD_TXT = "Assistente" ;
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
     private static String EXTRA_TITLE = "extra-title";
@@ -169,6 +171,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 if(notification.getFirstRun()) {
                     try {
                         proxy.speak("Ciao Perno", 0);
+                        proxy.addCommand(ASSISTANT_CMD_ID, ASSISTANT_CMD_TXT, 0);
                     } catch (SdlException e) {
                         //TODO notificare errore
                     }
@@ -222,7 +225,17 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnCommand(OnCommand notification) {
-
+        switch (notification.getCmdID().intValue()){
+            case (ASSISTANT_CMD_ID):
+                try {
+                    proxy.alert("Assistente da implementare", false,0);
+                } catch (SdlException e) {
+                    e.printStackTrace();//TODO gestire errore
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
