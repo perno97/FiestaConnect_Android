@@ -16,9 +16,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--<service
-            android:name=".SdlService"
-            android:enabled="true"/>-->
         <service
             android:name="perno97.fiestaconnect.SdlService"
             android:exported="true"

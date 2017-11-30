@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.smartdevicelink.exception.SdlException;
 import com.smartdevicelink.proxy.SdlProxyALM;

@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
     private void send() {
         EditText title = (EditText) findViewById(R.id.txtTitle);
         EditText subtitle = (EditText) findViewById(R.id.txtSubtitle);
-        Toast.makeText(this, "Inviato titolo: " + title.getText().toString() + " - sottotitolo: " + subtitle.getText().toString(), Toast.LENGTH_SHORT).show();
-        SdlService.getIntent(this, title.getText().toString(), subtitle.getText().toString());
+        startService(SdlService.getIntent(this, title.getText().toString(), subtitle.getText().toString()));
     }
 }
