@@ -14,6 +14,7 @@ import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
 import com.smartdevicelink.proxy.interfaces.IProxyListenerALM;
 import com.smartdevicelink.proxy.rpc.AddCommandResponse;
 import com.smartdevicelink.proxy.rpc.AddSubMenuResponse;
+import com.smartdevicelink.proxy.rpc.Alert;
 import com.smartdevicelink.proxy.rpc.AlertManeuverResponse;
 import com.smartdevicelink.proxy.rpc.AlertResponse;
 import com.smartdevicelink.proxy.rpc.ChangeRegistrationResponse;
@@ -58,11 +59,14 @@ import com.smartdevicelink.proxy.rpc.SetAppIconResponse;
 import com.smartdevicelink.proxy.rpc.SetDisplayLayoutResponse;
 import com.smartdevicelink.proxy.rpc.SetGlobalPropertiesResponse;
 import com.smartdevicelink.proxy.rpc.SetMediaClockTimerResponse;
+import com.smartdevicelink.proxy.rpc.Show;
 import com.smartdevicelink.proxy.rpc.ShowConstantTbtResponse;
 import com.smartdevicelink.proxy.rpc.ShowResponse;
 import com.smartdevicelink.proxy.rpc.SliderResponse;
+import com.smartdevicelink.proxy.rpc.SoftButton;
 import com.smartdevicelink.proxy.rpc.SpeakResponse;
 import com.smartdevicelink.proxy.rpc.StreamRPCResponse;
+import com.smartdevicelink.proxy.rpc.SubscribeButton;
 import com.smartdevicelink.proxy.rpc.SubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeWayPointsResponse;
@@ -71,10 +75,15 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
+import com.smartdevicelink.proxy.rpc.enums.ButtonName;
 import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
+import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.TransportConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
@@ -116,6 +125,15 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }else if(forceConnect){
             proxy.forceOnConnected();
+        }
+
+        //Messo dopo connessione così al primo avvio prima si connette.
+        if(proxy != null){
+            try {
+                proxy.show(title, subtitle, TextAlignment.CENTERED, 0);
+            }
+            catch (SdlException e) {
+            }
         }
 
         //use START_STICKY because we want the SDLService to be explicitly started and stopped as needed.
@@ -171,15 +189,14 @@ public class SdlService extends Service implements IProxyListenerALM {
                 if(notification.getFirstRun()) {
                     try {
                         proxy.speak("Ciao Perno", 0);
-                        proxy.addCommand(ASSISTANT_CMD_ID, ASSISTANT_CMD_TXT, 0);
+                        List<SoftButton> softButtons = new ArrayList<>();
+
+                        SubscribeButton subscribeButtonRequest = new SubscribeButton();
+                        subscribeButtonRequest.setButtonName(ButtonName.OK);
+
                     } catch (SdlException e) {
                         //TODO notificare errore
                     }
-                }
-                try {
-                    proxy.show(title, subtitle, TextAlignment.CENTERED, 0);
-                } catch (SdlException e) {
-                    //TODO notificare errore
                 }
                 break;
             case HMI_LIMITED:
@@ -225,17 +242,6 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnCommand(OnCommand notification) {
-        switch (notification.getCmdID().intValue()){
-            case (ASSISTANT_CMD_ID):
-                try {
-                    proxy.alert("Assistente da implementare", false,0);
-                } catch (SdlException e) {
-                    e.printStackTrace();//TODO gestire errore
-                }
-                break;
-            default:
-                break;
-        }
     }
 
     @Override
@@ -305,12 +311,24 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnButtonEvent(OnButtonEvent notification) {
-
+        switch (notification.getButtonName()) {
+            case OK:
+                Alert alert = new Alert();
+                alert.setAlertText1("Assistente da implementare");
+                alert.setDuration(3000);
+                try {
+                    proxy.sendRPCRequest(alert);
+                } catch (SdlException e) {
+                    e.printStackTrace();
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
     public void onOnButtonPress(OnButtonPress notification) {
-
     }
 
     @Override
