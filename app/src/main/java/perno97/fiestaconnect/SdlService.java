@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.widget.Toast;
 
 import com.smartdevicelink.exception.SdlException;
 import com.smartdevicelink.proxy.SdlProxyALM;
@@ -66,7 +65,6 @@ import com.smartdevicelink.proxy.rpc.SliderResponse;
 import com.smartdevicelink.proxy.rpc.SoftButton;
 import com.smartdevicelink.proxy.rpc.SpeakResponse;
 import com.smartdevicelink.proxy.rpc.StreamRPCResponse;
-import com.smartdevicelink.proxy.rpc.SubscribeButton;
 import com.smartdevicelink.proxy.rpc.SubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeWayPointsResponse;
@@ -75,7 +73,6 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
-import com.smartdevicelink.proxy.rpc.enums.ButtonName;
 import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
@@ -89,26 +86,22 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     private static final int ASSISTANT_CMD_ID = 0;
     private static final String ASSISTANT_CMD_TXT = "Assistente" ;
+    private final String DEFAULT_SPEAK = "Ciao Perno";
+    private final String DEFAULT_TITLE = "FiestaConnect";
+
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
-    private static String EXTRA_TITLE = "extra-title";
-    private static String EXTRA_SUBTITLE = "extra-subtitle";
-    private static String DEFAULT_TITLE = "FiestaConnect";
-    private static String DEFAULT_SUBTITLE = "Hello world!!!";
-    String title;
-    String subtitle;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
-        String titleExtra = intent.getStringExtra(EXTRA_TITLE);
-        String subtitleExtra = intent.getStringExtra(EXTRA_SUBTITLE);
-
-        if(titleExtra != null) title = titleExtra;
-        else title = DEFAULT_TITLE;
-
-        if(subtitleExtra != null) subtitle = subtitleExtra;
-        else subtitle = DEFAULT_SUBTITLE;
+        String txtExtra;
+        try {
+            txtExtra = intent.getStringExtra(Intent.EXTRA_TEXT);
+        }
+        catch (NullPointerException e){
+            txtExtra=null;
+        }
 
         if (proxy == null) {
             try {
@@ -127,12 +120,11 @@ public class SdlService extends Service implements IProxyListenerALM {
             proxy.forceOnConnected();
         }
 
-        //Messo dopo connessione così al primo avvio prima si connette.
-        if(proxy != null){
+        if(txtExtra != null && proxy != null) {
             try {
-                proxy.show(title, subtitle, TextAlignment.CENTERED, 0);
-            }
-            catch (SdlException e) {
+                proxy.speak(txtExtra, 0);
+            } catch (SdlException e) {
+                e.printStackTrace();
             }
         }
 
@@ -140,16 +132,9 @@ public class SdlService extends Service implements IProxyListenerALM {
         return START_STICKY;
     }
 
-    /**
-     * Getter for correct intent to this service.
-     * @param title Title to show
-     * @param subtitle Subtitle to show
-     * @return
-     */
-    public static Intent getIntent(Context context, String title, String subtitle){
+    public static Intent getIntent(Context context, String text){
         Intent intent = new Intent(context, SdlService.class);
-        intent.putExtra(EXTRA_TITLE,title);
-        intent.putExtra(EXTRA_SUBTITLE,subtitle);
+        intent.putExtra(Intent.EXTRA_TEXT,text);
         return intent;
     }
 
@@ -188,12 +173,23 @@ public class SdlService extends Service implements IProxyListenerALM {
                 //TODO send welcome message, addcommands, subscribe to buttons ect
                 if(notification.getFirstRun()) {
                     try {
-                        proxy.speak("Ciao Perno", 0);
+                        Show showTitle = new Show();
+                        showTitle.setAlignment(TextAlignment.CENTERED);
+                        showTitle.setMainField1(DEFAULT_TITLE);
+                        proxy.sendRPCRequest(showTitle);
+                        proxy.speak(DEFAULT_SPEAK, 0);
+
                         List<SoftButton> softButtons = new ArrayList<>();
+                        SoftButton assistantButton = new SoftButton();
+                        assistantButton.setType(SoftButtonType.SBT_TEXT);
+                        assistantButton.setText(ASSISTANT_CMD_TXT);
+                        assistantButton.setSoftButtonID(ASSISTANT_CMD_ID);
 
-                        SubscribeButton subscribeButtonRequest = new SubscribeButton();
-                        subscribeButtonRequest.setButtonName(ButtonName.OK);
+                        softButtons.add(assistantButton);
 
+                        Show showBtn = new Show();
+                        showBtn.setSoftButtons(softButtons);
+                        proxy.sendRPCRequest(showBtn);
                     } catch (SdlException e) {
                         //TODO notificare errore
                     }
@@ -311,8 +307,8 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnButtonEvent(OnButtonEvent notification) {
-        switch (notification.getButtonName()) {
-            case OK:
+        switch (notification.getCustomButtonID()) {
+            case ASSISTANT_CMD_ID:
                 Alert alert = new Alert();
                 alert.setAlertText1("Assistente da implementare");
                 alert.setDuration(3000);
