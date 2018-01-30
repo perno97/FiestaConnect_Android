@@ -58,9 +58,11 @@ import com.smartdevicelink.proxy.rpc.SetAppIconResponse;
 import com.smartdevicelink.proxy.rpc.SetDisplayLayoutResponse;
 import com.smartdevicelink.proxy.rpc.SetGlobalPropertiesResponse;
 import com.smartdevicelink.proxy.rpc.SetMediaClockTimerResponse;
+import com.smartdevicelink.proxy.rpc.Show;
 import com.smartdevicelink.proxy.rpc.ShowConstantTbtResponse;
 import com.smartdevicelink.proxy.rpc.ShowResponse;
 import com.smartdevicelink.proxy.rpc.SliderResponse;
+import com.smartdevicelink.proxy.rpc.SoftButton;
 import com.smartdevicelink.proxy.rpc.SpeakResponse;
 import com.smartdevicelink.proxy.rpc.StreamRPCResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeButtonResponse;
@@ -73,8 +75,12 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
 import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
+import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.TransportConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
@@ -165,7 +171,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch(notification.getHmiLevel()) {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
-                /*List<SoftButton> softButtons = new ArrayList<>();
+                List<SoftButton> softButtons = new ArrayList<>();
                 SoftButton assistantButton = new SoftButton();
                 assistantButton.setType(SoftButtonType.SBT_TEXT);
                 assistantButton.setText(ASSISTANT_CMD_TXT);
@@ -173,11 +179,11 @@ public class SdlService extends Service implements IProxyListenerALM {
                 softButtons.add(assistantButton);
 
                 Show showBtn = new Show();
-                showBtn.setSoftButtons(softButtons);*/
+                showBtn.setSoftButtons(softButtons);
                 try {
                     proxy.show(getString(R.string.app_name), "", TextAlignment.CENTERED,0);
-                    //proxy.speak(DEFAULT_SPEAK, 0);
-                    //proxy.sendRPCRequest(showBtn);
+                    proxy.speak(DEFAULT_SPEAK, 0);
+                    proxy.sendRPCRequest(showBtn);
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
