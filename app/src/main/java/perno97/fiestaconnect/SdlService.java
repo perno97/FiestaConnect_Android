@@ -109,7 +109,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 //Create a new proxy using Bluetooth transport
                 //The listener, app name,
                 //whether or not it is a media app and the applicationId are supplied.
-                proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, Language.IT_IT, Language.IT_IT, "perno97.fiestaconnect");
+                proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, Language.IT_IT, Language.IT_IT, "8675309");
             } catch (SdlException e) {
                 //There was an error creating the proxy
                 if (proxy == null) {
