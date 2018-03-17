@@ -65,6 +65,7 @@ import com.smartdevicelink.proxy.rpc.SliderResponse;
 import com.smartdevicelink.proxy.rpc.SoftButton;
 import com.smartdevicelink.proxy.rpc.SpeakResponse;
 import com.smartdevicelink.proxy.rpc.StreamRPCResponse;
+import com.smartdevicelink.proxy.rpc.SubscribeButton;
 import com.smartdevicelink.proxy.rpc.SubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeWayPointsResponse;
@@ -73,6 +74,7 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
+import com.smartdevicelink.proxy.rpc.enums.ButtonName;
 import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
@@ -84,10 +86,9 @@ import java.util.List;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
-    private static final int ASSISTANT_CMD_ID = 0;
-    private static final String ASSISTANT_CMD_TXT = "Assistente" ;
-    private final String DEFAULT_SPEAK = "Ciao Perno";
-    private final String DEFAULT_TITLE = "FiestaConnect";
+    private static final Integer CORRID_SPEAK_INTENT = 0;
+    private static final Integer CORRID_SUB_ASSISTANT = 1;
+    private static final Integer CORRID_ALERT = 2;
 
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
@@ -108,7 +109,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 //Create a new proxy using Bluetooth transport
                 //The listener, app name,
                 //whether or not it is a media app and the applicationId are supplied.
-                proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, Language.IT_IT, Language.IT_IT, "8675309");
+                proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, Language.IT_IT, Language.IT_IT, "perno97.fiestaconnect");
             } catch (SdlException e) {
                 //There was an error creating the proxy
                 if (proxy == null) {
@@ -122,7 +123,7 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         if(txtExtra != null && proxy != null) {
             try {
-                proxy.speak(txtExtra, 0);
+                proxy.speak(txtExtra, CORRID_SPEAK_INTENT);
             } catch (SdlException e) {
                 e.printStackTrace();
             }
@@ -171,19 +172,12 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch(notification.getHmiLevel()) {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
-                List<SoftButton> softButtons = new ArrayList<>();
-                SoftButton assistantButton = new SoftButton();
-                assistantButton.setType(SoftButtonType.SBT_TEXT);
-                assistantButton.setText(ASSISTANT_CMD_TXT);
-                assistantButton.setSoftButtonID(ASSISTANT_CMD_ID);
-                softButtons.add(assistantButton);
-
-                Show showBtn = new Show();
-                showBtn.setSoftButtons(softButtons);
+                SubscribeButton subscribeButtonRequest = new SubscribeButton();
+                subscribeButtonRequest.setButtonName(ButtonName.SEEKLEFT);
+                subscribeButtonRequest.setCorrelationID(CORRID_SUB_ASSISTANT);
                 try {
                     proxy.show(getString(R.string.app_name), "", TextAlignment.CENTERED,0);
-                    proxy.speak(DEFAULT_SPEAK, 0);
-                    proxy.sendRPCRequest(showBtn);
+                    proxy.sendRPCRequest(subscribeButtonRequest);
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
@@ -196,6 +190,18 @@ public class SdlService extends Service implements IProxyListenerALM {
                 break;
             default:
                 return;
+        }
+    }
+
+    private void alert(String toShow){
+        Alert alert = new Alert();
+        alert.setAlertText1(toShow);
+        alert.setDuration(3000);
+        alert.setCorrelationID(CORRID_ALERT);
+        try {
+            proxy.sendRPCRequest(alert);
+        } catch (SdlException e) {
+            e.printStackTrace();
         }
     }
 
@@ -300,24 +306,17 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnButtonEvent(OnButtonEvent notification) {
-        switch (notification.getCustomButtonID()) {
-            case ASSISTANT_CMD_ID:
-                Alert alert = new Alert();
-                alert.setAlertText1("Assistente da implementare");
-                alert.setDuration(3000);
-                try {
-                    proxy.sendRPCRequest(alert);
-                } catch (SdlException e) {
-                    e.printStackTrace();
-                }
-                break;
-            default:
-                break;
-        }
     }
 
     @Override
     public void onOnButtonPress(OnButtonPress notification) {
+        switch (notification.getButtonName()) {
+            case SEEKLEFT:
+                alert("Assistente da implementare!");
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
