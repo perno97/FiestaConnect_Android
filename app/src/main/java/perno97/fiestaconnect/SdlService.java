@@ -312,7 +312,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     public void onOnButtonPress(OnButtonPress notification) {
         switch (notification.getButtonName()) {
             case SEEKLEFT:
-                alert("Assistente da implementare!");
+                startActivity(new Intent(Intent.ACTION_VOICE_COMMAND).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 break;
             default:
                 break;
