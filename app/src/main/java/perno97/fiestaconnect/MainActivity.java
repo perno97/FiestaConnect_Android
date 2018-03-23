@@ -28,6 +28,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void send() {
         EditText toSend = (EditText) findViewById(R.id.txtToSend);
-        startService(SdlService.getIntent(this, toSend.getText().toString()));
+        startService(SdlService.getIntent(getApplicationContext(), toSend.getText().toString()));
     }
 }

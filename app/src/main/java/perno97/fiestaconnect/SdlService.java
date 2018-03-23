@@ -173,7 +173,7 @@ public class SdlService extends Service implements IProxyListenerALM {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
                 SubscribeButton subscribeButtonRequest = new SubscribeButton();
-                subscribeButtonRequest.setButtonName(ButtonName.SEEKLEFT);
+                subscribeButtonRequest.setButtonName(ButtonName.OK);
                 subscribeButtonRequest.setCorrelationID(CORRID_SUB_ASSISTANT);
                 try {
                     proxy.show(getString(R.string.app_name), "", TextAlignment.CENTERED,0);
@@ -311,7 +311,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onOnButtonPress(OnButtonPress notification) {
         switch (notification.getButtonName()) {
-            case SEEKLEFT:
+            case OK:
                 startActivity(new Intent(Intent.ACTION_VOICE_COMMAND).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 break;
             default:
