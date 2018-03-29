@@ -52,6 +52,7 @@ import com.smartdevicelink.proxy.rpc.PerformInteractionResponse;
 import com.smartdevicelink.proxy.rpc.PutFileResponse;
 import com.smartdevicelink.proxy.rpc.ReadDIDResponse;
 import com.smartdevicelink.proxy.rpc.ResetGlobalPropertiesResponse;
+import com.smartdevicelink.proxy.rpc.ScrollableMessage;
 import com.smartdevicelink.proxy.rpc.ScrollableMessageResponse;
 import com.smartdevicelink.proxy.rpc.SendLocationResponse;
 import com.smartdevicelink.proxy.rpc.SetAppIconResponse;
@@ -86,7 +87,7 @@ import java.util.List;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
-    private static final Integer CORRID_SPEAK_INTENT = 0;
+    private static final Integer CORRID_TEXT_INTENT = 0;
     private static final Integer CORRID_SUB_ASSISTANT = 1;
     private static final Integer CORRID_ALERT = 2;
 
@@ -123,7 +124,10 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         if(txtExtra != null && proxy != null) {
             try {
-                proxy.speak(txtExtra, CORRID_SPEAK_INTENT);
+                ScrollableMessage message = new ScrollableMessage();
+                message.setScrollableMessageBody(txtExtra);
+                message.setCorrelationID(CORRID_TEXT_INTENT);
+                proxy.sendRPCRequest(message);
             } catch (SdlException e) {
                 e.printStackTrace();
             }

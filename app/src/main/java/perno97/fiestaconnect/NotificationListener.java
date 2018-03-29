@@ -10,7 +10,7 @@ public class NotificationListener extends NotificationListenerService {
         Bundle extras = sbn.getNotification().extras;
         String title = extras.getString("android.title");
         String text = extras.getCharSequence("android.text").toString();
-        startService(SdlService.getIntent(getApplicationContext(), "Titolo: " + title + ". Testo: " + text));
+        //startService(SdlService.getIntent(getApplicationContext(), "Titolo: " + title + ". Testo: " + text));
 
     }
 }
