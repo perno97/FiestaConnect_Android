@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">FiestaConnect</string>
     <string name="txtMain">Info</string>
-    <string name="txtToSendHint">Testo da pronunciare</string>
+    <string name="txtToSendHint">Testo da inviare</string>
     <string name="btnSendText">Invia</string>
 </resources>

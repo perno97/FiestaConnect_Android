@@ -59,11 +59,9 @@ import com.smartdevicelink.proxy.rpc.SetAppIconResponse;
 import com.smartdevicelink.proxy.rpc.SetDisplayLayoutResponse;
 import com.smartdevicelink.proxy.rpc.SetGlobalPropertiesResponse;
 import com.smartdevicelink.proxy.rpc.SetMediaClockTimerResponse;
-import com.smartdevicelink.proxy.rpc.Show;
 import com.smartdevicelink.proxy.rpc.ShowConstantTbtResponse;
 import com.smartdevicelink.proxy.rpc.ShowResponse;
 import com.smartdevicelink.proxy.rpc.SliderResponse;
-import com.smartdevicelink.proxy.rpc.SoftButton;
 import com.smartdevicelink.proxy.rpc.SpeakResponse;
 import com.smartdevicelink.proxy.rpc.StreamRPCResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeButton;
@@ -78,12 +76,8 @@ import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
 import com.smartdevicelink.proxy.rpc.enums.ButtonName;
 import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
-import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.TransportConstants;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
@@ -97,13 +91,9 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
-        String txtExtra;
-        try {
+        String txtExtra = null;
+        if(intent != null)
             txtExtra = intent.getStringExtra(Intent.EXTRA_TEXT);
-        }
-        catch (NullPointerException e){
-            txtExtra=null;
-        }
 
         if (proxy == null) {
             try {
@@ -193,7 +183,6 @@ public class SdlService extends Service implements IProxyListenerALM {
             case HMI_NONE:
                 break;
             default:
-                return;
         }
     }
 
@@ -205,7 +194,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         try {
             proxy.sendRPCRequest(alert);
         } catch (SdlException e) {
-            e.printStackTrace();
+            //TODO notificare errore
         }
     }
 
@@ -317,6 +306,10 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch (notification.getButtonName()) {
             case OK:
                 startActivity(new Intent(Intent.ACTION_VOICE_COMMAND).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                break;
+            case SEEKLEFT:
+                break;
+            case SEEKRIGHT:
                 break;
             default:
                 break;
