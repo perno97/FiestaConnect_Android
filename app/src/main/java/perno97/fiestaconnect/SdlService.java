@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.view.KeyEvent;
 
 import com.smartdevicelink.exception.SdlException;
 import com.smartdevicelink.proxy.SdlProxyALM;
@@ -114,6 +115,7 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         if(txtExtra != null && proxy != null) {
             try {
+
                 ScrollableMessage message = new ScrollableMessage();
                 message.setScrollableMessageBody(txtExtra);
                 message.setCorrelationID(CORRID_TEXT_INTENT);
@@ -310,6 +312,9 @@ public class SdlService extends Service implements IProxyListenerALM {
             case SEEKLEFT:
                 break;
             case SEEKRIGHT:
+                Intent intentNext = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
+                sendBroadcast(intentNext, null);
                 break;
             default:
                 break;
