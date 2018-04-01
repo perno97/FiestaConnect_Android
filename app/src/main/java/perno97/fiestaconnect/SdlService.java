@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import com.smartdevicelink.exception.SdlException;
 import com.smartdevicelink.proxy.SdlProxyALM;
@@ -63,6 +64,7 @@ import com.smartdevicelink.proxy.rpc.SetMediaClockTimerResponse;
 import com.smartdevicelink.proxy.rpc.ShowConstantTbtResponse;
 import com.smartdevicelink.proxy.rpc.ShowResponse;
 import com.smartdevicelink.proxy.rpc.SliderResponse;
+import com.smartdevicelink.proxy.rpc.SoftButton;
 import com.smartdevicelink.proxy.rpc.SpeakResponse;
 import com.smartdevicelink.proxy.rpc.StreamRPCResponse;
 import com.smartdevicelink.proxy.rpc.SubscribeButton;
@@ -79,6 +81,8 @@ import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.TransportConstants;
+
+import java.util.ArrayList;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
@@ -115,10 +119,15 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         if(txtExtra != null && proxy != null) {
             try {
-
+                ArrayList<SoftButton> buttons = new ArrayList<>();
+                SoftButton b = new SoftButton();
+                b.setText("Prossima");
+                //TODO setSoftButtonId
+                buttons.add(b);
                 ScrollableMessage message = new ScrollableMessage();
                 message.setScrollableMessageBody(txtExtra);
                 message.setCorrelationID(CORRID_TEXT_INTENT);
+                message.setSoftButtons(buttons);
                 proxy.sendRPCRequest(message);
             } catch (SdlException e) {
                 e.printStackTrace();
@@ -320,6 +329,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                     i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
                     sendOrderedBroadcast(i, null);
                 }
+                Toast.makeText(this, "PROSSIMA", Toast.LENGTH_SHORT).show();
                 break;
             default:
                 break;
