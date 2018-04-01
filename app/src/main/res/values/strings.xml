@@ -3,4 +3,5 @@
     <string name="txtMain">Info</string>
     <string name="txtToSendHint">Testo da inviare</string>
     <string name="btnSendText">Invia</string>
+    <string name="toastNotList">Connesso alle notifiche</string>
 </resources>
