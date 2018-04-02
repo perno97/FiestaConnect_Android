@@ -79,6 +79,7 @@ import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
 import com.smartdevicelink.proxy.rpc.enums.ButtonName;
 import com.smartdevicelink.proxy.rpc.enums.Language;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
+import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.TransportConstants;
 
@@ -89,6 +90,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final Integer CORRID_TEXT_INTENT = 0;
     private static final Integer CORRID_SUB_ASSISTANT = 1;
     private static final Integer CORRID_ALERT = 2;
+    private static final int BTN_NEXT_ID = 0;
 
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
@@ -121,8 +123,9 @@ public class SdlService extends Service implements IProxyListenerALM {
             try {
                 ArrayList<SoftButton> buttons = new ArrayList<>();
                 SoftButton b = new SoftButton();
-                b.setText("Prossima");
-                //TODO setSoftButtonId
+                b.setText("Succ.");
+                b.setSoftButtonID(BTN_NEXT_ID);
+                b.setType(SoftButtonType.SBT_TEXT);
                 buttons.add(b);
                 ScrollableMessage message = new ScrollableMessage();
                 message.setScrollableMessageBody(txtExtra);
@@ -310,10 +313,6 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnButtonEvent(OnButtonEvent notification) {
-    }
-
-    @Override
-    public void onOnButtonPress(OnButtonPress notification) {
         switch (notification.getButtonName()) {
             case OK:
                 startActivity(new Intent(Intent.ACTION_VOICE_COMMAND).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -321,6 +320,7 @@ public class SdlService extends Service implements IProxyListenerALM {
             case SEEKLEFT:
                 break;
             case SEEKRIGHT:
+                Toast.makeText(this, "PROSSIMA", Toast.LENGTH_SHORT).show();
                 Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
                 synchronized (this) {
                     i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
@@ -329,11 +329,23 @@ public class SdlService extends Service implements IProxyListenerALM {
                     i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
                     sendOrderedBroadcast(i, null);
                 }
-                Toast.makeText(this, "PROSSIMA", Toast.LENGTH_SHORT).show();
+                break;
+            case CUSTOM_BUTTON:
+                switch (notification.getCustomButtonID()) {
+                    case BTN_NEXT_ID:
+                        alert("Prossimamente");
+                        break;
+                    default:
+                        break;
+                }
                 break;
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onOnButtonPress(OnButtonPress notification) {
     }
 
     @Override
