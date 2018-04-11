@@ -122,7 +122,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         if(txtExtra != null && proxy != null) {
             try {
                 ArrayList<SoftButton> buttons = new ArrayList<>();
-                SoftButton b = new SoftButton();
+                SoftButton b = new SoftButton(); //TODO subscribe custom button?
                 b.setText("Succ.");
                 b.setSoftButtonID(BTN_NEXT_ID);
                 b.setType(SoftButtonType.SBT_TEXT);
