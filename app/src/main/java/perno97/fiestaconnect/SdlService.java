@@ -88,8 +88,9 @@ import java.util.ArrayList;
 public class SdlService extends Service implements IProxyListenerALM {
 
     private static final Integer CORRID_TEXT_INTENT = 0;
-    private static final Integer CORRID_SUB_ASSISTANT = 1;
-    private static final Integer CORRID_ALERT = 2;
+    private static final Integer CORRID_SUBSCRIBE_ASSISTANT = 1;
+    private static final Integer CORRID_SUBSCRIBE_SEEKRIGHT = 2;
+    private static final Integer CORRID_ALERT = 3;
     private static final int BTN_NEXT_ID = 0;
 
     //The proxy handles communication between the application and SDL
@@ -180,12 +181,16 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch(notification.getHmiLevel()) {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
-                SubscribeButton subscribeButtonRequest = new SubscribeButton();
-                subscribeButtonRequest.setButtonName(ButtonName.OK);
-                subscribeButtonRequest.setCorrelationID(CORRID_SUB_ASSISTANT);
+                SubscribeButton subscribeOkRequest = new SubscribeButton();
+                subscribeOkRequest.setButtonName(ButtonName.OK);
+                subscribeOkRequest.setCorrelationID(CORRID_SUBSCRIBE_ASSISTANT);
+                SubscribeButton subscribeSeekRightRequest = new SubscribeButton();
+                subscribeSeekRightRequest.setButtonName(ButtonName.SEEKRIGHT);
+                subscribeSeekRightRequest.setCorrelationID(CORRID_SUBSCRIBE_SEEKRIGHT);
                 try {
                     proxy.show(getString(R.string.app_name), "", TextAlignment.CENTERED,0);
-                    proxy.sendRPCRequest(subscribeButtonRequest);
+                    proxy.sendRPCRequest(subscribeOkRequest);
+                    proxy.sendRPCRequest(subscribeSeekRightRequest);
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
@@ -203,7 +208,12 @@ public class SdlService extends Service implements IProxyListenerALM {
     private void alert(String toShow){
         Alert alert = new Alert();
         alert.setAlertText1(toShow);
+        alert.setAlertText2("");
+        alert.setAlertText3("");
+        alert.setTtsChunks(null);
         alert.setDuration(3000);
+        alert.setPlayTone(false);
+        alert.setProgressIndicator(false);
         alert.setCorrelationID(CORRID_ALERT);
         try {
             proxy.sendRPCRequest(alert);
