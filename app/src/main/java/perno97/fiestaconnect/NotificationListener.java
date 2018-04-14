@@ -10,6 +10,7 @@ public class NotificationListener extends NotificationListenerService {
 
     private String TAG = "notificationListener";
     public static final String WHATSAPP_PACK_NAME = "com.whatsapp";
+    public static final String TELEGRAM_PACK_NAME = "org.telegram.messenger";
 
     @Override
     public void onListenerConnected() {
@@ -21,7 +22,7 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.e(TAG, "NOTIFICATION RECEIVED");
-        if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME))
+        if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME))
             showNotification(sbn);
     }
 
