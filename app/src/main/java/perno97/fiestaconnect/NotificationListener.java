@@ -32,6 +32,7 @@ public class NotificationListener extends NotificationListenerService {
         String text;
         if(extras.getCharSequence("android.text") != null) {
             text = extras.getCharSequence("android.text").toString();
+            Log.e(TAG, title + text);
             startService(SdlService.getIntent(getApplicationContext(), "Titolo: " + title + ". \nTesto: " + text));
         }
     }

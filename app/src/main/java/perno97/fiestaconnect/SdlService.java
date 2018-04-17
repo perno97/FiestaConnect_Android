@@ -100,6 +100,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
         String txtExtra = null;
+
         if(intent != null)
             txtExtra = intent.getStringExtra(Intent.EXTRA_TEXT);
 
@@ -328,16 +329,25 @@ public class SdlService extends Service implements IProxyListenerALM {
                 startActivity(new Intent(Intent.ACTION_VOICE_COMMAND).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 break;
             case SEEKLEFT:
+                Toast.makeText(this, "PRECEDENTE", Toast.LENGTH_SHORT).show();
+                Intent intentPrevious = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                synchronized (this) {
+                    intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
+                    sendOrderedBroadcast(intentPrevious, null);
+
+                    intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
+                    sendOrderedBroadcast(intentPrevious, null);
+                }
                 break;
             case SEEKRIGHT:
                 Toast.makeText(this, "PROSSIMA", Toast.LENGTH_SHORT).show();
-                Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                Intent intentNext = new Intent(Intent.ACTION_MEDIA_BUTTON);
                 synchronized (this) {
-                    i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
-                    sendOrderedBroadcast(i, null);
+                    intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
+                    sendOrderedBroadcast(intentNext, null);
 
-                    i.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
-                    sendOrderedBroadcast(i, null);
+                    intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
+                    sendOrderedBroadcast(intentNext, null);
                 }
                 break;
             case CUSTOM_BUTTON:
