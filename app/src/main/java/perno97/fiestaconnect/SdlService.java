@@ -353,7 +353,7 @@ public class SdlService extends Service implements IProxyListenerALM {
             case CUSTOM_BUTTON:
                 switch (notification.getCustomButtonID()) {
                     case BTN_NEXT_ID:
-                        alert("Prossimamente");
+                        startService(NotificationListener.getIntent(this, NotificationListener.EXTRA_COMMAND, NotificationListener.NEXT_COMMAND_EXTRA));
                         break;
                     default:
                         break;
