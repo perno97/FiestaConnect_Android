@@ -91,6 +91,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final Integer CORRID_SUBSCRIBE_ASSISTANT = 1;
     private static final Integer CORRID_SUBSCRIBE_SEEKRIGHT = 2;
     private static final Integer CORRID_ALERT = 3;
+    private static final Integer CORRID_SUBSCRIBE_SEEKLEFT = 4;
     private static final int BTN_NEXT_ID = 0;
 
     //The proxy handles communication between the application and SDL
@@ -124,7 +125,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         if(txtExtra != null && proxy != null) {
             try {
                 ArrayList<SoftButton> buttons = new ArrayList<>();
-                SoftButton b = new SoftButton(); //TODO subscribe custom button?
+                SoftButton b = new SoftButton();
                 b.setText("Succ.");
                 b.setSoftButtonID(BTN_NEXT_ID);
                 b.setType(SoftButtonType.SBT_TEXT);
@@ -188,6 +189,9 @@ public class SdlService extends Service implements IProxyListenerALM {
                 SubscribeButton subscribeSeekRightRequest = new SubscribeButton();
                 subscribeSeekRightRequest.setButtonName(ButtonName.SEEKRIGHT);
                 subscribeSeekRightRequest.setCorrelationID(CORRID_SUBSCRIBE_SEEKRIGHT);
+                SubscribeButton subscribeSeekLeftRequest = new SubscribeButton();
+                subscribeSeekLeftRequest.setButtonName(ButtonName.SEEKLEFT);
+                subscribeSeekLeftRequest.setCorrelationID(CORRID_SUBSCRIBE_SEEKLEFT);
                 try {
                     proxy.show(getString(R.string.app_name), "", TextAlignment.CENTERED,0);
                     proxy.sendRPCRequest(subscribeOkRequest);
