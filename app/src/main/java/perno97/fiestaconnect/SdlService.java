@@ -5,8 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.Toast;
 
 import com.smartdevicelink.exception.SdlException;
+import com.smartdevicelink.proxy.RPCResponse;
 import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
@@ -29,6 +33,7 @@ import com.smartdevicelink.proxy.rpc.GenericResponse;
 import com.smartdevicelink.proxy.rpc.GetDTCsResponse;
 import com.smartdevicelink.proxy.rpc.GetVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.GetWayPointsResponse;
+import com.smartdevicelink.proxy.rpc.Image;
 import com.smartdevicelink.proxy.rpc.ListFilesResponse;
 import com.smartdevicelink.proxy.rpc.OnAudioPassThru;
 import com.smartdevicelink.proxy.rpc.OnButtonEvent;
@@ -52,6 +57,7 @@ import com.smartdevicelink.proxy.rpc.PerformInteractionResponse;
 import com.smartdevicelink.proxy.rpc.PutFileResponse;
 import com.smartdevicelink.proxy.rpc.ReadDIDResponse;
 import com.smartdevicelink.proxy.rpc.ResetGlobalPropertiesResponse;
+import com.smartdevicelink.proxy.rpc.ScrollableMessage;
 import com.smartdevicelink.proxy.rpc.ScrollableMessageResponse;
 import com.smartdevicelink.proxy.rpc.SendLocationResponse;
 import com.smartdevicelink.proxy.rpc.SetAppIconResponse;
@@ -76,19 +82,26 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
 import com.smartdevicelink.proxy.rpc.enums.ButtonName;
 import com.smartdevicelink.proxy.rpc.enums.Language;
+import com.smartdevicelink.proxy.rpc.enums.Result;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
+import com.smartdevicelink.proxy.rpc.listeners.OnRPCResponseListener;
 import com.smartdevicelink.transport.TransportConstants;
+import com.smartdevicelink.util.CorrelationIdGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
-    private static final Integer CORRID_SPEAK_INTENT = 0;
-    private static final Integer CORRID_SUB_ASSISTANT = 1;
-    private static final Integer CORRID_ALERT = 2;
+    private static final int BTN_NEXT_ID = 0;
+    private static final String BTN_NEXT_STRING = "Succ.";
+    private static final int BTN_PLAY_PAUSE_ID = 1;
+    private static final String BTN_PLAY_PAUSE_STRING = "Play";
+    private static final Integer NOTIFICATION_MESSAGE_CORR_ID = CorrelationIdGenerator.generateId();
+    private static final String BTN_NOTIFICATION_STRING = "Notifiche";
+    private static final int BTN_NOTIFICATION_ID = 2;
 
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
@@ -96,13 +109,10 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
-        String txtExtra;
-        try {
+        String txtExtra = null;
+
+        if(intent != null)
             txtExtra = intent.getStringExtra(Intent.EXTRA_TEXT);
-        }
-        catch (NullPointerException e){
-            txtExtra=null;
-        }
 
         if (proxy == null) {
             try {
@@ -123,7 +133,17 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         if(txtExtra != null && proxy != null) {
             try {
-                proxy.speak(txtExtra, CORRID_SPEAK_INTENT);
+                ArrayList<SoftButton> buttons = new ArrayList<>();
+                SoftButton b = new SoftButton();
+                b.setText(BTN_NEXT_STRING);
+                b.setSoftButtonID(BTN_NEXT_ID);
+                b.setType(SoftButtonType.SBT_TEXT);
+                buttons.add(b);
+                ScrollableMessage message = new ScrollableMessage();
+                message.setScrollableMessageBody(txtExtra);
+                message.setCorrelationID(NOTIFICATION_MESSAGE_CORR_ID);
+                message.setSoftButtons(buttons);
+                proxy.sendRPCRequest(message);
             } catch (SdlException e) {
                 e.printStackTrace();
             }
@@ -172,12 +192,37 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch(notification.getHmiLevel()) {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
-                SubscribeButton subscribeButtonRequest = new SubscribeButton();
-                subscribeButtonRequest.setButtonName(ButtonName.SEEKLEFT);
-                subscribeButtonRequest.setCorrelationID(CORRID_SUB_ASSISTANT);
+                SubscribeButton subscribeOkRequest = new SubscribeButton();
+                subscribeOkRequest.setButtonName(ButtonName.OK);
+                subscribeOkRequest.setCorrelationID(CorrelationIdGenerator.generateId());
+                SubscribeButton subscribeSeekRightRequest = new SubscribeButton();
+                subscribeSeekRightRequest.setButtonName(ButtonName.SEEKRIGHT);
+                subscribeSeekRightRequest.setCorrelationID(CorrelationIdGenerator.generateId());
+                SubscribeButton subscribeSeekLeftRequest = new SubscribeButton();
+                subscribeSeekLeftRequest.setButtonName(ButtonName.SEEKLEFT);
+                subscribeSeekLeftRequest.setCorrelationID(CorrelationIdGenerator.generateId());
+
+                List<SoftButton> softButtonList = new ArrayList<>();
+                SoftButton playPauseSoftButton = new SoftButton();
+                playPauseSoftButton.setType(SoftButtonType.SBT_TEXT);
+                playPauseSoftButton.setText(BTN_PLAY_PAUSE_STRING);
+                playPauseSoftButton.setSoftButtonID(BTN_PLAY_PAUSE_ID);
+                SoftButton forceShowNotificationSoftButton = new SoftButton();
+                forceShowNotificationSoftButton.setType(SoftButtonType.SBT_TEXT);
+                forceShowNotificationSoftButton.setText(BTN_NOTIFICATION_STRING);
+                forceShowNotificationSoftButton.setSoftButtonID(BTN_NOTIFICATION_ID);
+                softButtonList.add(playPauseSoftButton);
+                softButtonList.add(forceShowNotificationSoftButton);
+
+                Show show = new Show();
+                show.setSoftButtons(softButtonList);
+                show.setCorrelationID(CorrelationIdGenerator.generateId());
                 try {
                     proxy.show(getString(R.string.app_name), "", TextAlignment.CENTERED,0);
-                    proxy.sendRPCRequest(subscribeButtonRequest);
+                    proxy.sendRPCRequest(show);
+                    proxy.sendRPCRequest(subscribeOkRequest);
+                    proxy.sendRPCRequest(subscribeSeekRightRequest);
+                    proxy.sendRPCRequest(subscribeSeekLeftRequest);
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
@@ -189,19 +234,23 @@ public class SdlService extends Service implements IProxyListenerALM {
             case HMI_NONE:
                 break;
             default:
-                return;
         }
     }
 
     private void alert(String toShow){
         Alert alert = new Alert();
         alert.setAlertText1(toShow);
+        alert.setAlertText2("");
+        alert.setAlertText3("");
+        alert.setTtsChunks(null);
         alert.setDuration(3000);
-        alert.setCorrelationID(CORRID_ALERT);
+        alert.setPlayTone(false);
+        alert.setProgressIndicator(false);
+        alert.setCorrelationID(CorrelationIdGenerator.generateId());
         try {
             proxy.sendRPCRequest(alert);
         } catch (SdlException e) {
-            e.printStackTrace();
+            //TODO notificare errore
         }
     }
 
@@ -311,8 +360,49 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onOnButtonPress(OnButtonPress notification) {
         switch (notification.getButtonName()) {
+            case OK:
+                startActivity(new Intent(Intent.ACTION_VOICE_COMMAND).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                break;
             case SEEKLEFT:
-                alert("Assistente da implementare!");
+                Intent intentPrevious = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                synchronized (this) {
+                    intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
+                    sendOrderedBroadcast(intentPrevious, null);
+
+                    intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
+                    sendOrderedBroadcast(intentPrevious, null);
+                }
+                break;
+            case SEEKRIGHT:
+                Intent intentNext = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                synchronized (this) {
+                    intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
+                    sendOrderedBroadcast(intentNext, null);
+
+                    intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
+                    sendOrderedBroadcast(intentNext, null);
+                }
+                break;
+            case CUSTOM_BUTTON:
+                switch (notification.getCustomButtonName()) {
+                    case BTN_NEXT_ID:
+                        startService(NotificationListener.getIntent(this, NotificationListener.EXTRA_COMMAND, NotificationListener.NEXT_COMMAND_EXTRA));
+                        break;
+                    case BTN_PLAY_PAUSE_ID:
+                        Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                        synchronized (this) {
+                            intentPlayPause.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
+                            sendOrderedBroadcast(intentPlayPause, null);
+
+                            intentPlayPause.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
+                            sendOrderedBroadcast(intentPlayPause, null);
+                        }
+                        break;
+                    case BTN_NOTIFICATION_ID:
+                        startService(NotificationListener.getIntent(this, NotificationListener.EXTRA_COMMAND, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
+                    default:
+                        break;
+                }
                 break;
             default:
                 break;
