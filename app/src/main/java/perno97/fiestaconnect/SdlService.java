@@ -3,6 +3,7 @@ package perno97.fiestaconnect;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -364,24 +365,27 @@ public class SdlService extends Service implements IProxyListenerALM {
                 startActivity(new Intent(Intent.ACTION_VOICE_COMMAND).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 break;
             case SEEKLEFT:
-                Intent intentPrevious = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                /*Intent intentPrevious = new Intent(Intent.ACTION_MEDIA_BUTTON);
                 synchronized (this) {
                     intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
                     sendOrderedBroadcast(intentPrevious, null);
 
                     intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
                     sendOrderedBroadcast(intentPrevious, null);
-                }
+                }*/
+
+                getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
                 break;
             case SEEKRIGHT:
-                Intent intentNext = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                /*Intent intentNext = new Intent(Intent.ACTION_MEDIA_BUTTON);
                 synchronized (this) {
                     intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
                     sendOrderedBroadcast(intentNext, null);
 
                     intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
                     sendOrderedBroadcast(intentNext, null);
-                }
+                }*/
+                getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
                 break;
             case CUSTOM_BUTTON:
                 switch (notification.getCustomButtonName()) {
@@ -389,14 +393,15 @@ public class SdlService extends Service implements IProxyListenerALM {
                         startService(NotificationListener.getIntent(this, NotificationListener.EXTRA_COMMAND, NotificationListener.NEXT_COMMAND_EXTRA));
                         break;
                     case BTN_PLAY_PAUSE_ID:
-                        Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                        /*Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);
                         synchronized (this) {
                             intentPlayPause.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
                             sendOrderedBroadcast(intentPlayPause, null);
 
                             intentPlayPause.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
                             sendOrderedBroadcast(intentPlayPause, null);
-                        }
+                        }*/
+                        getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
                         break;
                     case BTN_NOTIFICATION_ID:
                         startService(NotificationListener.getIntent(this, NotificationListener.EXTRA_COMMAND, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
