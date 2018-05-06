@@ -3,6 +3,7 @@ package perno97.fiestaconnect;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -16,6 +17,7 @@ import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
 import com.smartdevicelink.proxy.interfaces.IProxyListenerALM;
+import com.smartdevicelink.proxy.rpc.AddCommand;
 import com.smartdevicelink.proxy.rpc.AddCommandResponse;
 import com.smartdevicelink.proxy.rpc.AddSubMenuResponse;
 import com.smartdevicelink.proxy.rpc.Alert;
@@ -96,24 +98,51 @@ import java.util.List;
 
 public class SdlService extends Service implements IProxyListenerALM {
 
-    private static final int BTN_NEXT_ID = 0;
+    public static final String EXTRA_TYPE = "type";
+    private static final String EXTRA_CONTENT = "content";
+    public static final String SONG_TITLE_EXTRA = "songTitle";
+    public static final String TEXT_TO_SHOW_EXTRA = "textToShow";
+    public static final String NOTIFICATION_TEXT_EXTRA = "notificationText";
+
     private static final String BTN_NEXT_STRING = "Succ.";
-    private static final int BTN_PLAY_PAUSE_ID = 1;
     private static final String BTN_PLAY_PAUSE_STRING = "Play";
     private static final Integer NOTIFICATION_MESSAGE_CORR_ID = CorrelationIdGenerator.generateId();
     private static final String BTN_NOTIFICATION_STRING = "Notifiche";
+    private static final String BTN_DELETE_STRING = "Rimuovi";
+    private static final String CLEAR_NOTIFICATION_QUEUE_CMD_STRING = "Reset coda notifiche";
+
+    private static final int BTN_NEXT_ID = 0;
+    private static final int BTN_PLAY_PAUSE_ID = 1;
     private static final int BTN_NOTIFICATION_ID = 2;
+    private static final int BTN_DELETE_ID = 3;
+    private static final int CLEAR_NOTIFICATION_QUEUE_CMD_ID = 4;
+
 
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
+    private String mainText1;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
+        mainText1 = getString(R.string.app_name);
         String txtExtra = null;
-
+        String notificationToShow = null;
         if(intent != null)
-            txtExtra = intent.getStringExtra(Intent.EXTRA_TEXT);
+            if(intent.getExtras().getString(EXTRA_TYPE) != null && intent.getExtras().getString(EXTRA_CONTENT)!= null){
+                switch (intent.getExtras().getString(EXTRA_TYPE)){
+                    case TEXT_TO_SHOW_EXTRA:
+                        txtExtra = intent.getExtras().getString(EXTRA_CONTENT);
+                        break;
+                    case NOTIFICATION_TEXT_EXTRA:
+                        notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
+                        break;
+                    case SONG_TITLE_EXTRA:
+                        mainText1 = intent.getExtras().getString(EXTRA_CONTENT);
+                    default:
+                        break;
+                }
+            }
 
         if (proxy == null) {
             try {
@@ -132,18 +161,35 @@ public class SdlService extends Service implements IProxyListenerALM {
             proxy.forceOnConnected();
         }
 
-        if(txtExtra != null && proxy != null) {
+        if(notificationToShow != null && proxy != null) {
+            ArrayList<SoftButton> buttons = new ArrayList<>();
+            SoftButton butonNext = new SoftButton();
+            butonNext.setText(BTN_NEXT_STRING);
+            butonNext.setSoftButtonID(BTN_NEXT_ID);
+            butonNext.setType(SoftButtonType.SBT_TEXT);
+            buttons.add(butonNext);
+
+            SoftButton buttonDelete = new SoftButton();
+            buttonDelete.setText(BTN_DELETE_STRING);
+            buttonDelete.setSoftButtonID(BTN_DELETE_ID);
+            buttonDelete.setType(SoftButtonType.SBT_TEXT);
+            buttons.add(buttonDelete);
+
+            ScrollableMessage notification = new ScrollableMessage();
+            notification.setScrollableMessageBody(notificationToShow);
+            notification.setCorrelationID(NOTIFICATION_MESSAGE_CORR_ID);
+            notification.setSoftButtons(buttons);
             try {
-                ArrayList<SoftButton> buttons = new ArrayList<>();
-                SoftButton b = new SoftButton();
-                b.setText(BTN_NEXT_STRING);
-                b.setSoftButtonID(BTN_NEXT_ID);
-                b.setType(SoftButtonType.SBT_TEXT);
-                buttons.add(b);
-                ScrollableMessage message = new ScrollableMessage();
-                message.setScrollableMessageBody(txtExtra);
-                message.setCorrelationID(NOTIFICATION_MESSAGE_CORR_ID);
-                message.setSoftButtons(buttons);
+                proxy.sendRPCRequest(notification);
+            } catch (SdlException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(txtExtra != null && proxy != null){
+            ScrollableMessage message = new ScrollableMessage();
+            message.setScrollableMessageBody(txtExtra);
+            message.setCorrelationID(CorrelationIdGenerator.generateId());
+            try {
                 proxy.sendRPCRequest(message);
             } catch (SdlException e) {
                 e.printStackTrace();
@@ -154,9 +200,10 @@ public class SdlService extends Service implements IProxyListenerALM {
         return START_STICKY;
     }
 
-    public static Intent getIntent(Context context, String text){
+    public static Intent getIntent(Context context, String contentType, String content){
         Intent intent = new Intent(context, SdlService.class);
-        intent.putExtra(Intent.EXTRA_TEXT,text);
+        intent.putExtra(EXTRA_TYPE, contentType);
+        intent.putExtra(EXTRA_CONTENT, content);
         return intent;
     }
 
@@ -193,6 +240,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch(notification.getHmiLevel()) {
             case HMI_FULL:
                 //TODO send welcome message, addcommands, subscribe to buttons ect
+                //Sottoscrizione ai bottoni
                 SubscribeButton subscribeOkRequest = new SubscribeButton();
                 subscribeOkRequest.setButtonName(ButtonName.OK);
                 subscribeOkRequest.setCorrelationID(CorrelationIdGenerator.generateId());
@@ -203,6 +251,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 subscribeSeekLeftRequest.setButtonName(ButtonName.SEEKLEFT);
                 subscribeSeekLeftRequest.setCorrelationID(CorrelationIdGenerator.generateId());
 
+                //Softbuttons
                 List<SoftButton> softButtonList = new ArrayList<>();
                 SoftButton playPauseSoftButton = new SoftButton();
                 playPauseSoftButton.setType(SoftButtonType.SBT_TEXT);
@@ -215,15 +264,17 @@ public class SdlService extends Service implements IProxyListenerALM {
                 softButtonList.add(playPauseSoftButton);
                 softButtonList.add(forceShowNotificationSoftButton);
 
+                //Invio rpc request
                 Show show = new Show();
                 show.setSoftButtons(softButtonList);
                 show.setCorrelationID(CorrelationIdGenerator.generateId());
                 try {
-                    proxy.show(getString(R.string.app_name), "", TextAlignment.CENTERED,0);
+                    proxy.show(mainText1, "", TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
                     proxy.sendRPCRequest(show);
                     proxy.sendRPCRequest(subscribeOkRequest);
                     proxy.sendRPCRequest(subscribeSeekRightRequest);
                     proxy.sendRPCRequest(subscribeSeekLeftRequest);
+                    proxy.addCommand(CLEAR_NOTIFICATION_QUEUE_CMD_ID,CLEAR_NOTIFICATION_QUEUE_CMD_STRING,CorrelationIdGenerator.generateId());
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
@@ -287,6 +338,10 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnCommand(OnCommand notification) {
+        switch (notification.getCmdID()){
+            case CLEAR_NOTIFICATION_QUEUE_CMD_ID:
+                startService(NotificationListener.getIntent(this, NotificationListener.DELETE_NOTIFICATION_QUEUE));
+        }
     }
 
     @Override
@@ -390,7 +445,10 @@ public class SdlService extends Service implements IProxyListenerALM {
             case CUSTOM_BUTTON:
                 switch (notification.getCustomButtonName()) {
                     case BTN_NEXT_ID:
-                        startService(NotificationListener.getIntent(this, NotificationListener.EXTRA_COMMAND, NotificationListener.NEXT_COMMAND_EXTRA));
+                        startService(NotificationListener.getIntent(this, NotificationListener.NEXT_COMMAND_EXTRA));
+                        break;
+                    case BTN_DELETE_ID:
+                        startService(NotificationListener.getIntent(this, NotificationListener.REMOVE_CURRENT_NOTIFICATION));
                         break;
                     case BTN_PLAY_PAUSE_ID:
                         /*Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);
@@ -404,7 +462,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
                         break;
                     case BTN_NOTIFICATION_ID:
-                        startService(NotificationListener.getIntent(this, NotificationListener.EXTRA_COMMAND, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
+                        startService(NotificationListener.getIntent(this, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
                     default:
                         break;
                 }
