@@ -3,21 +3,16 @@ package perno97.fiestaconnect;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 import com.smartdevicelink.exception.SdlException;
-import com.smartdevicelink.proxy.RPCResponse;
 import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
 import com.smartdevicelink.proxy.interfaces.IProxyListenerALM;
-import com.smartdevicelink.proxy.rpc.AddCommand;
 import com.smartdevicelink.proxy.rpc.AddCommandResponse;
 import com.smartdevicelink.proxy.rpc.AddSubMenuResponse;
 import com.smartdevicelink.proxy.rpc.Alert;
@@ -36,7 +31,6 @@ import com.smartdevicelink.proxy.rpc.GenericResponse;
 import com.smartdevicelink.proxy.rpc.GetDTCsResponse;
 import com.smartdevicelink.proxy.rpc.GetVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.GetWayPointsResponse;
-import com.smartdevicelink.proxy.rpc.Image;
 import com.smartdevicelink.proxy.rpc.ListFilesResponse;
 import com.smartdevicelink.proxy.rpc.OnAudioPassThru;
 import com.smartdevicelink.proxy.rpc.OnButtonEvent;
@@ -85,11 +79,9 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
 import com.smartdevicelink.proxy.rpc.enums.ButtonName;
 import com.smartdevicelink.proxy.rpc.enums.Language;
-import com.smartdevicelink.proxy.rpc.enums.Result;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.proxy.rpc.enums.SoftButtonType;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
-import com.smartdevicelink.proxy.rpc.listeners.OnRPCResponseListener;
 import com.smartdevicelink.transport.TransportConstants;
 import com.smartdevicelink.util.CorrelationIdGenerator;
 
@@ -129,7 +121,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         String txtExtra = null;
         String notificationToShow = null;
         if(intent != null)
-            if(intent.getExtras().getString(EXTRA_TYPE) != null && intent.getExtras().getString(EXTRA_CONTENT)!= null){
+            if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_TYPE) != null && intent.getExtras().getString(EXTRA_CONTENT)!= null){
                 switch (intent.getExtras().getString(EXTRA_TYPE)){
                     case TEXT_TO_SHOW_EXTRA:
                         txtExtra = intent.getExtras().getString(EXTRA_CONTENT);
@@ -159,6 +151,14 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }else if(forceConnect){
             proxy.forceOnConnected();
+        }
+
+        if(proxy != null){
+            try {
+                proxy.show(mainText1, "", TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
+            } catch (SdlException e){
+                e.printStackTrace();
+            }
         }
 
         if(notificationToShow != null && proxy != null) {
@@ -269,7 +269,6 @@ public class SdlService extends Service implements IProxyListenerALM {
                 show.setSoftButtons(softButtonList);
                 show.setCorrelationID(CorrelationIdGenerator.generateId());
                 try {
-                    proxy.show(mainText1, "", TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
                     proxy.sendRPCRequest(show);
                     proxy.sendRPCRequest(subscribeOkRequest);
                     proxy.sendRPCRequest(subscribeSeekRightRequest);
@@ -428,8 +427,8 @@ public class SdlService extends Service implements IProxyListenerALM {
                     intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
                     sendOrderedBroadcast(intentPrevious, null);
                 }*/
-
-                getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
+                if(getSystemService(AudioManager.class) != null)
+                    getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
                 break;
             case SEEKRIGHT:
                 /*Intent intentNext = new Intent(Intent.ACTION_MEDIA_BUTTON);
@@ -440,7 +439,8 @@ public class SdlService extends Service implements IProxyListenerALM {
                     intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
                     sendOrderedBroadcast(intentNext, null);
                 }*/
-                getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
+                if(getSystemService(AudioManager.class) != null)
+                    getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
                 break;
             case CUSTOM_BUTTON:
                 switch (notification.getCustomButtonName()) {
@@ -459,7 +459,8 @@ public class SdlService extends Service implements IProxyListenerALM {
                             intentPlayPause.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
                             sendOrderedBroadcast(intentPlayPause, null);
                         }*/
-                        getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
+                        if(getSystemService(AudioManager.class) != null)
+                            getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
                         break;
                     case BTN_NOTIFICATION_ID:
                         startService(NotificationListener.getIntent(this, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));

@@ -3,14 +3,12 @@ package perno97.fiestaconnect;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.util.LinkedList;
-import java.util.Queue;
 
 public class NotificationListener extends NotificationListenerService {
 
@@ -32,7 +30,7 @@ public class NotificationListener extends NotificationListenerService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(intent.getExtras().getString(EXTRA_COMMAND) != null)
+        if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_COMMAND) != null)
             commandReceived(intent.getExtras().getString(EXTRA_COMMAND));
 
         return super.onStartCommand(intent, flags, startId);
