@@ -1,5 +1,6 @@
 package perno97.fiestaconnect;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -21,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btnSend:
                 send();
                 break;
+            case R.id.btnNotifSettings:
+                startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
             default:
                 break;
         }
