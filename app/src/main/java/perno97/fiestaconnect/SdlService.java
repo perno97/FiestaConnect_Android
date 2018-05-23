@@ -94,6 +94,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final String EXTRA_CONTENT = "content";
     public static final String SONG_TITLE_EXTRA = "songTitle";
     public static final String TEXT_TO_SHOW_EXTRA = "textToShow";
+    public static final String TEXT_TO_SPEAK_EXTRA = "textToSpeak";
     public static final String NOTIFICATION_TEXT_EXTRA = "notificationText";
 
     private static final String BTN_NEXT_STRING = "Succ.";
@@ -120,12 +121,15 @@ public class SdlService extends Service implements IProxyListenerALM {
         mainText1 = getString(R.string.app_name);
         String txtExtra = null;
         String notificationToShow = null;
+        String txtToSpeak = null;
         if(intent != null)
             if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_TYPE) != null && intent.getExtras().getString(EXTRA_CONTENT)!= null){
                 switch (intent.getExtras().getString(EXTRA_TYPE)){
                     case TEXT_TO_SHOW_EXTRA:
                         txtExtra = intent.getExtras().getString(EXTRA_CONTENT);
                         break;
+                    case TEXT_TO_SPEAK_EXTRA:
+                        txtToSpeak = intent.getExtras().getString(EXTRA_CONTENT);
                     case NOTIFICATION_TEXT_EXTRA:
                         notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
                         break;
@@ -191,6 +195,17 @@ public class SdlService extends Service implements IProxyListenerALM {
             message.setCorrelationID(CorrelationIdGenerator.generateId());
             try {
                 proxy.sendRPCRequest(message);
+            } catch (SdlException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(txtToSpeak != null && proxy != null){
+            ScrollableMessage message = new ScrollableMessage();
+            message.setScrollableMessageBody(txtExtra);
+            message.setCorrelationID(CorrelationIdGenerator.generateId());
+            try {
+                proxy.sendRPCRequest(message);
+                proxy.speak(txtToSpeak, CorrelationIdGenerator.generateId());
             } catch (SdlException e) {
                 e.printStackTrace();
             }

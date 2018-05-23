@@ -20,17 +20,21 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View v){
         switch (v.getId()){
             case R.id.btnSend:
-                send();
+                send(SdlService.TEXT_TO_SHOW_EXTRA);
                 break;
             case R.id.btnNotifSettings:
                 startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+                break;
+            case R.id.btnSpeak:
+                send(SdlService.TEXT_TO_SPEAK_EXTRA);
+                break;
             default:
                 break;
         }
     }
 
-    private void send() {
-        EditText toSend = (EditText) findViewById(R.id.txtToSend);
-        startService(SdlService.getIntent(getApplicationContext(), SdlService.TEXT_TO_SHOW_EXTRA, toSend.getText().toString()));
+    private void send(String contentType) {
+        EditText toSend = findViewById(R.id.txtToSend);
+        startService(SdlService.getIntent(getApplicationContext(), contentType, toSend.getText().toString()));
     }
 }
