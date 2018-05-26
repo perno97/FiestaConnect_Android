@@ -130,6 +130,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         break;
                     case TEXT_TO_SPEAK_EXTRA:
                         txtToSpeak = intent.getExtras().getString(EXTRA_CONTENT);
+                        break;
                     case NOTIFICATION_TEXT_EXTRA:
                         notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
                         break;
