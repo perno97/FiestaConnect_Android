@@ -13,6 +13,7 @@ import java.util.LinkedList;
 public class NotificationListener extends NotificationListenerService {
 
 
+    private static final int QUEUE_SIZE_THRESHOLD = 200;
     private String TAG = "notificationListener";
     private static final String PLAY_MUSIC_PACK_NAME = "com.google.android.music";
     public static final String WHATSAPP_PACK_NAME = "com.whatsapp";
@@ -80,8 +81,11 @@ public class NotificationListener extends NotificationListenerService {
         if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME)) {
             if(showingNotification == null)
                 showNotification(sbn);
-            else
+            else {
+                if (notificationQueue.size() > QUEUE_SIZE_THRESHOLD)
+                    setNotificationQueue(new LinkedList<StatusBarNotification>());
                 notificationQueue.add(sbn);
+            }
         }
         if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME)){
             String title = sbn.getNotification().extras.getString("android.title");
