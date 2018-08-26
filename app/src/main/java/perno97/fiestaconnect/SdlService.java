@@ -114,11 +114,11 @@ public class SdlService extends Service implements IProxyListenerALM {
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
     private String mainText1;
+    private String mainText2;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
-        mainText1 = getString(R.string.app_name);
         String txtExtra = null;
         String notificationToShow = null;
         String txtToSpeak = null;
@@ -135,7 +135,13 @@ public class SdlService extends Service implements IProxyListenerALM {
                         notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
                         break;
                     case SONG_TITLE_EXTRA:
-                        mainText1 = intent.getExtras().getString(EXTRA_CONTENT);
+                        String title = intent.getExtras().getString(EXTRA_CONTENT);
+                        if(title.length() >= 20) {
+                            mainText1 = title.substring(0, 21);
+                            mainText2 = title.substring(21, title.length());
+                        }
+                        else
+                            mainText1 = title;
                     default:
                         break;
                 }
@@ -160,7 +166,9 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         if(proxy != null){
             try {
-                proxy.show(mainText1, "", TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
+                if(mainText1.length() == 0 && mainText2.length() == 0)
+                    mainText1 = "FiestaConnect";
+                proxy.show(mainText1, mainText2, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
             } catch (SdlException e){
                 e.printStackTrace();
             }
@@ -443,8 +451,10 @@ public class SdlService extends Service implements IProxyListenerALM {
                     intentPrevious.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
                     sendOrderedBroadcast(intentPrevious, null);
                 }*/
-                if(getSystemService(AudioManager.class) != null)
+                if(getSystemService(AudioManager.class) != null) {
                     getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
+                    getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS));
+                }
                 break;
             case SEEKRIGHT:
                 /*Intent intentNext = new Intent(Intent.ACTION_MEDIA_BUTTON);
@@ -455,8 +465,10 @@ public class SdlService extends Service implements IProxyListenerALM {
                     intentNext.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
                     sendOrderedBroadcast(intentNext, null);
                 }*/
-                if(getSystemService(AudioManager.class) != null)
+                if(getSystemService(AudioManager.class) != null) {
                     getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT));
+                    getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT));
+                }
                 break;
             case CUSTOM_BUTTON:
                 switch (notification.getCustomButtonName()) {
@@ -475,8 +487,10 @@ public class SdlService extends Service implements IProxyListenerALM {
                             intentPlayPause.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
                             sendOrderedBroadcast(intentPlayPause, null);
                         }*/
-                        if(getSystemService(AudioManager.class) != null)
+                        if(getSystemService(AudioManager.class) != null) {
                             getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
+                            getSystemService(AudioManager.class).dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
+                        }
                         break;
                     case BTN_NOTIFICATION_ID:
                         startService(NotificationListener.getIntent(this, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));

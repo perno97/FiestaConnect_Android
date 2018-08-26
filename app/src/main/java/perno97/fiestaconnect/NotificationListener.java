@@ -123,6 +123,7 @@ public class NotificationListener extends NotificationListenerService {
     public void removeCurrentNotification(){
         if(showingNotification != null)
             cancelNotification(showingNotification.getKey());
+        showNextNotification();
     }
 
     public void setNotificationQueue(LinkedList<StatusBarNotification> notificationQueue) {
