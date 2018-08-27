@@ -113,8 +113,8 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     //The proxy handles communication between the application and SDL
     private SdlProxyALM proxy = null;
-    private String mainText1;
-    private String mainText2;
+    private String mainText1="";
+    private String mainText2="";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
