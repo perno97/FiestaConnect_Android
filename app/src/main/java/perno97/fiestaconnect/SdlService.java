@@ -115,6 +115,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private SdlProxyALM proxy = null;
     private String mainText1="";
     private String mainText2="";
+    private String mainText3="";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -136,12 +137,25 @@ public class SdlService extends Service implements IProxyListenerALM {
                         break;
                     case SONG_TITLE_EXTRA:
                         String title = intent.getExtras().getString(EXTRA_CONTENT);
-                        if(title.length() >= 20) {
-                            mainText1 = title.substring(0, 21);
-                            mainText2 = title.substring(21, title.length());
+                        try {
+                            if (title.length() > 15 && title.length() <= 30) {
+                                mainText1 = title.substring(0, 16);
+                                mainText2 = title.substring(16, title.length());
+                                mainText3 = "";
+                            } else if (title.length() > 30) {
+                                mainText1 = title.substring(0, 16);
+                                mainText2 = title.substring(16, 31);
+                                mainText3 = title.substring(31, title.length());
+                            } else {
+                                mainText1 = title;
+                                mainText2 = "";
+                                mainText3 = "";
+                            }
+                        } catch (IndexOutOfBoundsException e) {
+                            mainText1 = "Out of bound";
+                            mainText2 = String.valueOf(title.length());
+                            mainText3 = "15 o 30";
                         }
-                        else
-                            mainText1 = title;
                     default:
                         break;
                 }
@@ -168,7 +182,7 @@ public class SdlService extends Service implements IProxyListenerALM {
             try {
                 if(mainText1.length() == 0 && mainText2.length() == 0)
                     mainText1 = "FiestaConnect";
-                proxy.show(mainText1, mainText2, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
+                proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
             } catch (SdlException e){
                 e.printStackTrace();
             }
@@ -176,11 +190,11 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         if(notificationToShow != null && proxy != null) {
             ArrayList<SoftButton> buttons = new ArrayList<>();
-            SoftButton butonNext = new SoftButton();
-            butonNext.setText(BTN_NEXT_STRING);
-            butonNext.setSoftButtonID(BTN_NEXT_ID);
-            butonNext.setType(SoftButtonType.SBT_TEXT);
-            buttons.add(butonNext);
+            SoftButton buttonNext = new SoftButton();
+            buttonNext.setText(BTN_NEXT_STRING);
+            buttonNext.setSoftButtonID(BTN_NEXT_ID);
+            buttonNext.setType(SoftButtonType.SBT_TEXT);
+            buttons.add(buttonNext);
 
             SoftButton buttonDelete = new SoftButton();
             buttonDelete.setText(BTN_DELETE_STRING);
