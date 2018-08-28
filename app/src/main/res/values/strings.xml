@@ -4,4 +4,6 @@
     <string name="txtToSendHint">Testo da inviare</string>
     <string name="btnSendText">Invia</string>
     <string name="toastNotList">Connesso alle notifiche</string>
+    <string name="btnNotifSettingsText">Consenti accesso notifiche</string>
+    <string name="btn_speak_text">Parla</string>
 </resources>
