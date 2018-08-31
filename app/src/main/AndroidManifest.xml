@@ -18,14 +18,16 @@
         </activity>
         <service
             android:name="perno97.fiestaconnect.SdlService"
-            android:exported="true"
-            android:process="com.smartdevicelink.router">
+            android:enabled="true">
         </service>
 
         <service
         android:name="perno97.fiestaconnect.SdlRouterService"
         android:exported="true"
         android:process="com.smartdevicelink.router">
+            <intent-filter>
+                <action android:name="com.smartdevicelink.router.service"/>
+            </intent-filter>
         </service>
 
         <service android:name=".NotificationListener"
