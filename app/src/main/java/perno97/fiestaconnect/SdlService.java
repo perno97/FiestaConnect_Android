@@ -167,6 +167,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 //The listener, app name,
                 //whether or not it is a media app and the applicationId are supplied.
                 proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, Language.IT_IT, Language.IT_IT, "8675309");
+                startService(NotificationListener.getIntent(this, NotificationListener.CHECK_SONG_EXTRA));
             } catch (SdlException e) {
                 //There was an error creating the proxy
                 if (proxy == null) {
@@ -377,7 +378,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     public void onOnCommand(OnCommand notification) {
         switch (notification.getCmdID()){
             case CLEAR_NOTIFICATION_QUEUE_CMD_ID:
-                startService(NotificationListener.getIntent(this, NotificationListener.DELETE_NOTIFICATION_QUEUE));
+                startService(NotificationListener.getIntent(this, NotificationListener.DELETE_NOTIFICATION_QUEUE_EXTRA));
         }
     }
 
@@ -490,7 +491,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         startService(NotificationListener.getIntent(this, NotificationListener.NEXT_COMMAND_EXTRA));
                         break;
                     case BTN_DELETE_ID:
-                        startService(NotificationListener.getIntent(this, NotificationListener.REMOVE_CURRENT_NOTIFICATION));
+                        startService(NotificationListener.getIntent(this, NotificationListener.REMOVE_CURRENT_NOTIFICATION_EXTRA));
                         break;
                     case BTN_PLAY_PAUSE_ID:
                         /*Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);

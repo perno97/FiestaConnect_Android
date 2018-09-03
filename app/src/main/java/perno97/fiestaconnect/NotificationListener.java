@@ -21,13 +21,15 @@ public class NotificationListener extends NotificationListenerService {
     public static final String EXTRA_COMMAND = "command";
     public static final String NEXT_COMMAND_EXTRA = "next";
     public static final String FORCE_SHOW_COMMAND_EXTRA = "forceShow";
-    public static final String REMOVE_CURRENT_NOTIFICATION = "removeCurrent";
-    public static final String DELETE_NOTIFICATION_QUEUE = "deleteQueue";
+    public static final String REMOVE_CURRENT_NOTIFICATION_EXTRA = "removeCurrent";
+    public static final String DELETE_NOTIFICATION_QUEUE_EXTRA = "deleteQueue";
+    public static final String CHECK_SONG_EXTRA = "checkSong";
 
     private static final String NOTHING_TO_SHOW_STRING = "Niente da mostrare.";
 
     private LinkedList<StatusBarNotification> notificationQueue;
     private StatusBarNotification showingNotification;
+    private String songTitle;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -53,12 +55,14 @@ public class NotificationListener extends NotificationListenerService {
                 setShowingNotification(null);
                 showNextNotification();
                 break;
-            case REMOVE_CURRENT_NOTIFICATION:
+            case REMOVE_CURRENT_NOTIFICATION_EXTRA:
                 removeCurrentNotification();
                 break;
-            case DELETE_NOTIFICATION_QUEUE:
+            case DELETE_NOTIFICATION_QUEUE_EXTRA:
                 setNotificationQueue(new LinkedList<StatusBarNotification>());
                 break;
+            case CHECK_SONG_EXTRA:
+                showSongTitle();
             default:
                 break;
         }
@@ -88,9 +92,13 @@ public class NotificationListener extends NotificationListenerService {
             }
         }
         if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME)){
-            String title = sbn.getNotification().extras.getString("android.title");
-            startService(SdlService.getIntent(getApplicationContext(),SdlService.SONG_TITLE_EXTRA, title));
+            songTitle = sbn.getNotification().extras.getString("android.title");
+            showSongTitle();
         }
+    }
+
+    private void showSongTitle() {
+        startService(SdlService.getIntent(getApplicationContext(),SdlService.SONG_TITLE_EXTRA, songTitle));
     }
 
     private void showNotification(StatusBarNotification sbn) {
