@@ -1,9 +1,12 @@
 package perno97.fiestaconnect;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.KeyEvent;
@@ -115,6 +118,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final int BTN_NOTIFICATION_ID = 2;
     private static final int BTN_DELETE_ID = 3;
     private static final int CLEAR_NOTIFICATION_QUEUE_CMD_ID = 4;
+    private static final String CHANNEL_ID = "12345";
 
 
     //The proxy handles communication between the application and SDL
@@ -250,6 +254,23 @@ public class SdlService extends Service implements IProxyListenerALM {
         intent.putExtra(EXTRA_TYPE, contentType);
         intent.putExtra(EXTRA_CONTENT, content);
         return intent;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(...);
+            Notification serviceNotification = new Notification.Builder(this, CHANNEL_ID)
+            .setContentTitle("FiestaConnect")
+            .setSmallIcon(....)
+            .setLargeIcon(...)
+            .setContentText(...)
+            .setChannelId(channel.getId())
+                    .build();
+            startForeground(id, serviceNotification);
+        }*/
     }
 
     @Override
