@@ -15,9 +15,13 @@ public class NotificationListener extends NotificationListenerService {
 
     private static final int QUEUE_SIZE_THRESHOLD = 200;
     private String TAG = "notificationListener";
+
     private static final String PLAY_MUSIC_PACK_NAME = "com.google.android.music";
     public static final String WHATSAPP_PACK_NAME = "com.whatsapp";
     public static final String TELEGRAM_PACK_NAME = "org.telegram.messenger";
+    private static final String YOUTUBE_PACK_NAME = "com.google.android.youtube";
+    private static final String SPOTIFY_PACK_NAME = "com.spotify.music";
+
     public static final String EXTRA_COMMAND = "command";
     public static final String NEXT_COMMAND_EXTRA = "next";
     public static final String FORCE_SHOW_COMMAND_EXTRA = "forceShow";
@@ -62,6 +66,7 @@ public class NotificationListener extends NotificationListenerService {
                 setNotificationQueue(new LinkedList<StatusBarNotification>());
                 break;
             case CHECK_SONG_EXTRA:
+                Log.e(TAG, "CANZONE: " + songTitle);
                 showSongTitle();
             default:
                 break;
@@ -91,7 +96,7 @@ public class NotificationListener extends NotificationListenerService {
                 notificationQueue.add(sbn);
             }
         }
-        if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME)){
+        if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME) || sbn.getPackageName().equals(YOUTUBE_PACK_NAME) || sbn.getPackageName().equals(SPOTIFY_PACK_NAME)){
             songTitle = sbn.getNotification().extras.getString("android.title");
             showSongTitle();
         }
