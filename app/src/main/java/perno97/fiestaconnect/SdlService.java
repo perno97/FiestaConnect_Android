@@ -145,6 +145,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         break;
                     case NOTIFICATION_TEXT_EXTRA:
                         notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
+                        Log.e("SdlService", "MAIN TEXT1: " + mainText1);
                         break;
                     case SONG_TITLE_EXTRA:
                         String title = intent.getExtras().getString(EXTRA_CONTENT);
@@ -236,7 +237,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         }
 
         if(proxy != null) {
-            if(mainText1.length() == 0 && mainText2.length() == 0)
+            if(mainText1.length() == 0 && mainText2.length() == 0 && mainText3.length() == 0)
                 mainText1 = "FiestaConnect";
             try {
                 proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
