@@ -66,7 +66,6 @@ public class NotificationListener extends NotificationListenerService {
                 setNotificationQueue(new LinkedList<StatusBarNotification>());
                 break;
             case CHECK_SONG_EXTRA:
-                Log.e(TAG, "CANZONE: " + songTitle);
                 showSongTitle();
             default:
                 break;
@@ -97,7 +96,8 @@ public class NotificationListener extends NotificationListenerService {
             }
         }
         if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME) || sbn.getPackageName().equals(YOUTUBE_PACK_NAME) || sbn.getPackageName().equals(SPOTIFY_PACK_NAME)){
-            songTitle = sbn.getNotification().extras.getString("android.title");
+            //songTitle = sbn.getNotification().extras.getString("android.title");
+            songTitle = sbn.getNotification().extras.getCharSequence("android.title").toString();
             showSongTitle();
         }
     }

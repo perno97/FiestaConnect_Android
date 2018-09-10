@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.smartdevicelink.exception.SdlException;
@@ -177,7 +178,6 @@ public class SdlService extends Service implements IProxyListenerALM {
                 //The listener, app name,
                 //whether or not it is a media app and the applicationId are supplied.
                 proxy = new SdlProxyALM(this.getBaseContext(),this, getString(R.string.app_name), true, Language.IT_IT, Language.IT_IT, "8675309");
-                startService(NotificationListener.getIntent(this, NotificationListener.CHECK_SONG_EXTRA));
             } catch (SdlException e) {
                 //There was an error creating the proxy
                 if (proxy == null) {
@@ -187,16 +187,6 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }else if(forceConnect){
             proxy.forceOnConnected();
-        }
-
-        if(proxy != null){
-            try {
-                if(mainText1.length() == 0 && mainText2.length() == 0)
-                    mainText1 = "FiestaConnect";
-                proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
-            } catch (SdlException e){
-                e.printStackTrace();
-            }
         }
 
         if(notificationToShow != null && proxy != null) {
@@ -240,6 +230,16 @@ public class SdlService extends Service implements IProxyListenerALM {
             try {
                 proxy.sendRPCRequest(message);
                 proxy.speak(txtToSpeak, CorrelationIdGenerator.generateId());
+            } catch (SdlException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(proxy != null) {
+            if(mainText1.length() == 0 && mainText2.length() == 0)
+                mainText1 = "FiestaConnect";
+            try {
+                proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
             } catch (SdlException e) {
                 e.printStackTrace();
             }
@@ -343,6 +343,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
+                startService(NotificationListener.getIntent(this, NotificationListener.CHECK_SONG_EXTRA));
                 break;
             case HMI_LIMITED:
                 break;
