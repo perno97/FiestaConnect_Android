@@ -88,14 +88,12 @@ public class NotificationListener extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.e(TAG, "NOTIFICATION RECEIVED");
         if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME)) {
-            if(!sbn.isGroup()) {
-                if (showingNotification == null)
-                    showNotification(sbn);
-                else {
-                    if (notificationQueue.size() > QUEUE_SIZE_THRESHOLD)
-                        setNotificationQueue(new LinkedList<StatusBarNotification>());
-                    notificationQueue.add(sbn);
-                }
+            if (showingNotification == null)
+                showNotification(sbn);
+            else {
+                if (notificationQueue.size() > QUEUE_SIZE_THRESHOLD)
+                    setNotificationQueue(new LinkedList<StatusBarNotification>());
+                notificationQueue.add(sbn);
             }
         }
         if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME) || sbn.getPackageName().equals(YOUTUBE_PACK_NAME) || sbn.getPackageName().equals(SPOTIFY_PACK_NAME)){
