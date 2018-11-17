@@ -1,12 +1,9 @@
 package perno97.fiestaconnect;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -51,7 +48,6 @@ import com.smartdevicelink.proxy.rpc.OnKeyboardInput;
 import com.smartdevicelink.proxy.rpc.OnLanguageChange;
 import com.smartdevicelink.proxy.rpc.OnLockScreenStatus;
 import com.smartdevicelink.proxy.rpc.OnPermissionsChange;
-import com.smartdevicelink.proxy.rpc.OnRCStatus;
 import com.smartdevicelink.proxy.rpc.OnStreamRPC;
 import com.smartdevicelink.proxy.rpc.OnSystemRequest;
 import com.smartdevicelink.proxy.rpc.OnTBTClientState;
@@ -775,11 +771,6 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onSendHapticDataResponse(SendHapticDataResponse response) {
-
-    }
-
-    @Override
-    public void onOnRCStatus(OnRCStatus notification) {
 
     }
     // Inherited methods from IProxyListenerALM
