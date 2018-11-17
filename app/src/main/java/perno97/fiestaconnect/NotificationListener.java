@@ -21,7 +21,6 @@ public class NotificationListener extends NotificationListenerService {
     public static final String TELEGRAM_PACK_NAME = "org.telegram.messenger";
     private static final String YOUTUBE_PACK_NAME = "com.google.android.youtube";
     private static final String SPOTIFY_PACK_NAME = "com.spotify.music";
-    private static final String MESSENGER_PLUS_PACK_NAME = "org.telegram.plus";
 
     public static final String EXTRA_COMMAND = "command";
     public static final String NEXT_COMMAND_EXTRA = "next";
@@ -88,15 +87,13 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.e(TAG, "NOTIFICATION RECEIVED");
-        if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME)) {
-            if(!sbn.isGroup()) {
-                if (showingNotification == null)
-                    showNotification(sbn);
-                else {
-                    if (notificationQueue.size() > QUEUE_SIZE_THRESHOLD)
-                        setNotificationQueue(new LinkedList<StatusBarNotification>());
-                    notificationQueue.add(sbn);
-                }
+        if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME)) {
+            if (showingNotification == null)
+                showNotification(sbn);
+            else {
+                if (notificationQueue.size() > QUEUE_SIZE_THRESHOLD)
+                    setNotificationQueue(new LinkedList<StatusBarNotification>());
+                notificationQueue.add(sbn);
             }
         }
         if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME) || sbn.getPackageName().equals(YOUTUBE_PACK_NAME) || sbn.getPackageName().equals(SPOTIFY_PACK_NAME)){
