@@ -1,5 +1,6 @@
 package perno97.fiestaconnect;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadata;
@@ -15,7 +16,7 @@ import android.widget.Toast;
 import java.util.LinkedList;
 import java.util.List;
 
-public class NotificationListener extends NotificationListenerService implements MediaSessionManager.OnActiveSessionsChangedListener {
+public class NotificationListener extends NotificationListenerService {
 
 
     private static final int QUEUE_SIZE_THRESHOLD = 200;
@@ -41,6 +42,7 @@ public class NotificationListener extends NotificationListenerService implements
     private StatusBarNotification showingNotification;
     private String songTitle;
     private String reproducingSongNotificationId;
+    private MediaSessionManager mMediaSessionManager;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -55,6 +57,7 @@ public class NotificationListener extends NotificationListenerService implements
         super.onCreate();
         notificationQueue = new LinkedList<>();
         showingNotification = null;
+        mMediaSessionManager = this.getSystemService(MediaSessionManager.class);
     }
 
     private void commandReceived(String string) {
@@ -102,6 +105,7 @@ public class NotificationListener extends NotificationListenerService implements
                 notificationQueue.add(sbn);
             }
         }
+        checkSong();
         /*if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME) || sbn.getPackageName().equals(YOUTUBE_PACK_NAME) || sbn.getPackageName().equals(SPOTIFY_PACK_NAME)){
             //songTitle = sbn.getNotification().extras.getString("android.title");
             songTitle = sbn.getNotification().extras.getCharSequence("android.title").toString();
@@ -110,19 +114,25 @@ public class NotificationListener extends NotificationListenerService implements
         }*/
     }
 
-    @Override
-    public void onActiveSessionsChanged(@Nullable List<MediaController> controllers) {
+    private void checkSong(){
+        List<MediaController> controllers = mMediaSessionManager.getActiveSessions(new ComponentName(this, this.getClass()));
         if(controllers.size() > 0) {
             MediaMetadata metadata = controllers.get(0).getMetadata();
-            songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
+            if(metadata != null)
+                songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
+            else
+                songTitle = "";
         }
+        else
+            songTitle = "";
+        Log.e(TAG, "TITLE = " + songTitle);
+        showSongTitle();
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         super.onNotificationRemoved(sbn);
-        if(sbn.getKey().equals(reproducingSongNotificationId))
-            startService(SdlService.getIntent(this, SdlService.SONG_TITLE_EXTRA, ""));
+        checkSong();
     }
 
     private void showSongTitle() {
