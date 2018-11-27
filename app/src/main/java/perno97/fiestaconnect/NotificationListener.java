@@ -68,6 +68,7 @@ public class NotificationListener extends NotificationListenerService {
             case FORCE_SHOW_COMMAND_EXTRA:
                 setShowingNotification(null);
                 showNextNotification();
+                checkSong();
                 break;
             case REMOVE_CURRENT_NOTIFICATION_EXTRA:
                 removeCurrentNotification();
@@ -117,6 +118,7 @@ public class NotificationListener extends NotificationListenerService {
     private void checkSong(){
         List<MediaController> controllers = mMediaSessionManager.getActiveSessions(new ComponentName(this, this.getClass()));
         if(controllers.size() > 0) {
+            Log.e(TAG, "SIZE = " + controllers.size());
             MediaMetadata metadata = controllers.get(0).getMetadata();
             if(metadata != null)
                 songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
@@ -132,7 +134,16 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         super.onNotificationRemoved(sbn);
-        checkSong();
+        Log.e(TAG, "NOTIFICATION REMOVED");
+        new Thread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            checkSong();
+        }).start();
+        //checkSong();
     }
 
     private void showSongTitle() {
