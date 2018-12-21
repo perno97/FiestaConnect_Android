@@ -55,9 +55,7 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onCreate() {
         super.onCreate();
-        notificationQueue = new LinkedList<>();
-        showingNotification = null;
-        mMediaSessionManager = this.getSystemService(MediaSessionManager.class);
+        reset();
     }
 
     private void commandReceived(String string) {
@@ -74,7 +72,7 @@ public class NotificationListener extends NotificationListenerService {
                 removeCurrentNotification();
                 break;
             case DELETE_NOTIFICATION_QUEUE_EXTRA:
-                setNotificationQueue(new LinkedList<StatusBarNotification>());
+                reset();
                 break;
             case CHECK_SONG_EXTRA:
                 showSongTitle();
@@ -164,11 +162,17 @@ public class NotificationListener extends NotificationListenerService {
 
     public void showNextNotification(){
         showingNotification = null;
-        if(notificationQueue.size() != 0){
+        if(notificationQueue.size() > 0){
             showNotification(notificationQueue.poll());
         }
         else
             startService(SdlService.getIntent(getApplicationContext(), SdlService.TEXT_TO_SHOW_EXTRA, NOTHING_TO_SHOW_STRING));
+    }
+
+    private void reset() {
+        notificationQueue = new LinkedList<>();
+        showingNotification = null;
+        mMediaSessionManager = this.getSystemService(MediaSessionManager.class);
     }
 
     public static Intent getIntent(Context context, String command) {
