@@ -41,7 +41,6 @@ public class NotificationListener extends NotificationListenerService {
     private LinkedList<StatusBarNotification> notificationQueue;
     private StatusBarNotification showingNotification;
     private String songTitle;
-    private String reproducingSongNotificationId;
     private MediaSessionManager mMediaSessionManager;
 
     @Override
@@ -55,6 +54,7 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onCreate() {
         super.onCreate();
+        mMediaSessionManager = this.getSystemService(MediaSessionManager.class);
         reset();
     }
 
@@ -141,7 +141,7 @@ public class NotificationListener extends NotificationListenerService {
             }
             checkSong();
         }).start();
-        //checkSong();
+        checkSong();
     }
 
     private void showSongTitle() {
@@ -172,7 +172,6 @@ public class NotificationListener extends NotificationListenerService {
     private void reset() {
         notificationQueue = new LinkedList<>();
         showingNotification = null;
-        mMediaSessionManager = this.getSystemService(MediaSessionManager.class);
     }
 
     public static Intent getIntent(Context context, String command) {
