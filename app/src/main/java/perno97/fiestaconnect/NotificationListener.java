@@ -16,7 +16,7 @@ import android.widget.Toast;
 import java.util.LinkedList;
 import java.util.List;
 
-public class NotificationListener extends NotificationListenerService {
+public class NotificationListener extends NotificationListenerService implements  MediaSessionManager.OnActiveSessionsChangedListener{
 
 
     private static final int QUEUE_SIZE_THRESHOLD = 200;
@@ -41,7 +41,7 @@ public class NotificationListener extends NotificationListenerService {
     private LinkedList<StatusBarNotification> notificationQueue;
     private StatusBarNotification showingNotification;
     private String songTitle;
-    private MediaSessionManager mMediaSessionManager;
+    private MediaController mediaController;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -54,7 +54,8 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onCreate() {
         super.onCreate();
-        mMediaSessionManager = this.getSystemService(MediaSessionManager.class);
+        MediaSessionManager mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
+        mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
         reset();
     }
 
@@ -66,7 +67,6 @@ public class NotificationListener extends NotificationListenerService {
             case FORCE_SHOW_COMMAND_EXTRA:
                 setShowingNotification(null);
                 showNextNotification();
-                checkSong();
                 break;
             case REMOVE_CURRENT_NOTIFICATION_EXTRA:
                 removeCurrentNotification();
@@ -104,7 +104,6 @@ public class NotificationListener extends NotificationListenerService {
                 notificationQueue.add(sbn);
             }
         }
-        checkSong();
         /*if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME) || sbn.getPackageName().equals(YOUTUBE_PACK_NAME) || sbn.getPackageName().equals(SPOTIFY_PACK_NAME)){
             //songTitle = sbn.getNotification().extras.getString("android.title");
             songTitle = sbn.getNotification().extras.getCharSequence("android.title").toString();
@@ -113,35 +112,17 @@ public class NotificationListener extends NotificationListenerService {
         }*/
     }
 
-    private void checkSong(){
-        List<MediaController> controllers = mMediaSessionManager.getActiveSessions(new ComponentName(this, this.getClass()));
-        if(controllers.size() > 0) {
-            Log.e(TAG, "SIZE = " + controllers.size());
-            MediaMetadata metadata = controllers.get(0).getMetadata();
-            if(metadata != null)
-                songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
-            else
-                songTitle = "";
-        }
-        else
-            songTitle = "";
-        Log.e(TAG, "TITLE = " + songTitle);
-        showSongTitle();
-    }
-
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         super.onNotificationRemoved(sbn);
         Log.e(TAG, "NOTIFICATION REMOVED");
-        new Thread(() -> {
+        /*new Thread(() -> {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            checkSong();
-        }).start();
-        checkSong();
+        }).start();*/
     }
 
     private void showSongTitle() {
@@ -188,5 +169,34 @@ public class NotificationListener extends NotificationListenerService {
 
     public void setNotificationQueue(LinkedList<StatusBarNotification> notificationQueue) {
         this.notificationQueue = notificationQueue;
+    }
+
+    private class MediaControllerCallback extends MediaController.Callback {
+        @Override
+        public void onMetadataChanged(@Nullable MediaMetadata metadata) {
+            super.onMetadataChanged(metadata);
+            if(metadata != null)
+                songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
+            else
+                songTitle = "";
+        }
+    }
+
+    @Override
+    public void onActiveSessionsChanged(@Nullable List<MediaController> controllers) {
+        if(controllers != null && !controllers.isEmpty()) {
+            Log.e(TAG, "SIZE = " + controllers.size());
+            mediaController = controllers.get(0);
+            mediaController.registerCallback(new MediaControllerCallback());
+            /*MediaMetadata metadata = controllers.get(0).getMetadata();
+            if(metadata != null)
+                songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
+            else
+                songTitle = "";*/
+        }
+        else
+            songTitle = "";
+        Log.e(TAG, "TITLE = " + songTitle);
+        showSongTitle();
     }
 }
