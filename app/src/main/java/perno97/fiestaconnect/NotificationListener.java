@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
+import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
@@ -13,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,9 +42,9 @@ public class NotificationListener extends NotificationListenerService implements
 
     private LinkedList<StatusBarNotification> notificationQueue;
     private StatusBarNotification showingNotification;
-    private String songTitle;
-    private MediaController mediaController;
+    private String songTitle = "";
     private MediaSessionManager mgr;
+    private MediaControllerCallback mediaControllerCallback;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -57,6 +59,7 @@ public class NotificationListener extends NotificationListenerService implements
         super.onCreate();
         mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
         mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
+        mediaControllerCallback = new MediaControllerCallback();
         reset();
     }
 
@@ -101,7 +104,7 @@ public class NotificationListener extends NotificationListenerService implements
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        Log.e(TAG, "NOTIFICATION RECEIVED");
+        //Log.e(TAG, "NOTIFICATION RECEIVED");
         if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME)) {
             if (showingNotification == null)
                 showNotification(sbn);
@@ -122,7 +125,7 @@ public class NotificationListener extends NotificationListenerService implements
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         super.onNotificationRemoved(sbn);
-        Log.e(TAG, "NOTIFICATION REMOVED");
+        //Log.e(TAG, "NOTIFICATION REMOVED");
         /*new Thread(() -> {
             try {
                 Thread.sleep(100);
@@ -178,7 +181,7 @@ public class NotificationListener extends NotificationListenerService implements
         this.notificationQueue = notificationQueue;
     }
 
-    private class MediaControllerCallback extends MediaController.Callback {
+    public class MediaControllerCallback extends MediaController.Callback {
         @Override
         public void onMetadataChanged(@Nullable MediaMetadata metadata) {
             super.onMetadataChanged(metadata);
@@ -186,6 +189,14 @@ public class NotificationListener extends NotificationListenerService implements
                 songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
             else
                 songTitle = "";
+
+            Log.e(TAG,"METADATA CHANGED - TITLE: " + songTitle);
+        }
+
+        @Override
+        public void onSessionDestroyed() {
+            super.onSessionDestroyed();
+            songTitle = "";
         }
     }
 
@@ -193,8 +204,10 @@ public class NotificationListener extends NotificationListenerService implements
     public void onActiveSessionsChanged(@Nullable List<MediaController> controllers) {
         if(controllers != null && !controllers.isEmpty()) {
             Log.e(TAG, "SIZE = " + controllers.size());
-            mediaController = controllers.get(0);
-            mediaController.registerCallback(new MediaControllerCallback());
+            for(MediaController c : controllers) {
+                c.registerCallback(mediaControllerCallback);
+                Log.e(TAG,"CALLBACK REGISTRATA PER --> " + c.getPackageName());
+            }
             /*MediaMetadata metadata = controllers.get(0).getMetadata();
             if(metadata != null)
                 songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
@@ -203,7 +216,7 @@ public class NotificationListener extends NotificationListenerService implements
         }
         else
             songTitle = "";
-        Log.e(TAG, "TITLE = " + songTitle);
+        Log.e(TAG, "ACTIVE SESSIONS CHANGED - TITLE: " + songTitle);
         showSongTitle();
     }
 }
