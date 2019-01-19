@@ -42,6 +42,7 @@ public class NotificationListener extends NotificationListenerService implements
     private StatusBarNotification showingNotification;
     private String songTitle;
     private MediaController mediaController;
+    private MediaSessionManager mgr;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -54,9 +55,15 @@ public class NotificationListener extends NotificationListenerService implements
     @Override
     public void onCreate() {
         super.onCreate();
-        MediaSessionManager mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
+        mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
         mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
         reset();
+    }
+
+    @Override
+    public void onDestroy() {
+        mgr.removeOnActiveSessionsChangedListener(this);
+        super.onDestroy();
     }
 
     private void commandReceived(String string) {
