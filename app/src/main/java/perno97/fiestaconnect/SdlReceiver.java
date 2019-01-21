@@ -10,7 +10,6 @@ public class SdlReceiver extends SdlBroadcastReceiver {
     @Override
     public void onSdlEnabled(Context context, Intent intent) {
         //Use the provided intent but set the class to the SdlService
-        context.stopService(new Intent(context, SdlService.class));
         intent.setClass(context, SdlService.class);
         context.startService(NotificationListener.getIntent(context, NotificationListener.DELETE_NOTIFICATION_QUEUE_EXTRA));
         context.startService(intent);

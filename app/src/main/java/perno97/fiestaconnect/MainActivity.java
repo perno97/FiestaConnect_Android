@@ -29,17 +29,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btnSpeak:
                 send(SdlService.TEXT_TO_SPEAK_EXTRA);
                 break;
-            case R.id.btnReset:
-                reset();
-                break;
             default:
                 break;
         }
-    }
-
-    private void reset() {
-        stopService(new Intent(this, SdlService.class));
-        Toast.makeText(this, "Reset", Toast.LENGTH_SHORT).show();
     }
 
     private void send(String contentType) {
