@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="perno97.fiestaconnect">
+
+    <uses-permission android:name="android.Manifest.permission.MEDIA_CONTENT_CONTROL" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,14 +21,17 @@
         </activity>
         <service
             android:name="perno97.fiestaconnect.SdlService"
-            android:exported="true"
-            android:process="com.smartdevicelink.router">
+            android:enabled="true">
         </service>
 
         <service
         android:name="perno97.fiestaconnect.SdlRouterService"
         android:exported="true"
         android:process="com.smartdevicelink.router">
+            <intent-filter>
+                <action android:name="com.smartdevicelink.router.service"/>
+            </intent-filter>
+            <meta-data android:name="sdl_router_version"  android:value="@integer/sdl_router_service_version_value" />
         </service>
 
         <service android:name=".NotificationListener"
@@ -41,9 +48,6 @@
 
             <intent-filter>
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
-                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED"/>
-                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
-                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
                 <action android:name="sdl.router.startservice" />
             </intent-filter>
 

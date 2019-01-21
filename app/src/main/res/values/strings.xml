@@ -6,4 +6,5 @@
     <string name="toastNotList">Connesso alle notifiche</string>
     <string name="btnNotifSettingsText">Consenti accesso notifiche</string>
     <string name="btn_speak_text">Parla</string>
+    <string name="reset_queue">Reset</string>
 </resources>

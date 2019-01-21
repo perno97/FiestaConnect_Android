@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.smartdevicelink.exception.SdlException;
@@ -18,6 +19,7 @@ import com.smartdevicelink.proxy.rpc.AddSubMenuResponse;
 import com.smartdevicelink.proxy.rpc.Alert;
 import com.smartdevicelink.proxy.rpc.AlertManeuverResponse;
 import com.smartdevicelink.proxy.rpc.AlertResponse;
+import com.smartdevicelink.proxy.rpc.ButtonPressResponse;
 import com.smartdevicelink.proxy.rpc.ChangeRegistrationResponse;
 import com.smartdevicelink.proxy.rpc.CreateInteractionChoiceSetResponse;
 import com.smartdevicelink.proxy.rpc.DeleteCommandResponse;
@@ -29,6 +31,8 @@ import com.smartdevicelink.proxy.rpc.DialNumberResponse;
 import com.smartdevicelink.proxy.rpc.EndAudioPassThruResponse;
 import com.smartdevicelink.proxy.rpc.GenericResponse;
 import com.smartdevicelink.proxy.rpc.GetDTCsResponse;
+import com.smartdevicelink.proxy.rpc.GetInteriorVehicleDataResponse;
+import com.smartdevicelink.proxy.rpc.GetSystemCapabilityResponse;
 import com.smartdevicelink.proxy.rpc.GetVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.GetWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.ListFilesResponse;
@@ -39,10 +43,12 @@ import com.smartdevicelink.proxy.rpc.OnCommand;
 import com.smartdevicelink.proxy.rpc.OnDriverDistraction;
 import com.smartdevicelink.proxy.rpc.OnHMIStatus;
 import com.smartdevicelink.proxy.rpc.OnHashChange;
+import com.smartdevicelink.proxy.rpc.OnInteriorVehicleData;
 import com.smartdevicelink.proxy.rpc.OnKeyboardInput;
 import com.smartdevicelink.proxy.rpc.OnLanguageChange;
 import com.smartdevicelink.proxy.rpc.OnLockScreenStatus;
 import com.smartdevicelink.proxy.rpc.OnPermissionsChange;
+import com.smartdevicelink.proxy.rpc.OnRCStatus;
 import com.smartdevicelink.proxy.rpc.OnStreamRPC;
 import com.smartdevicelink.proxy.rpc.OnSystemRequest;
 import com.smartdevicelink.proxy.rpc.OnTBTClientState;
@@ -56,10 +62,12 @@ import com.smartdevicelink.proxy.rpc.ReadDIDResponse;
 import com.smartdevicelink.proxy.rpc.ResetGlobalPropertiesResponse;
 import com.smartdevicelink.proxy.rpc.ScrollableMessage;
 import com.smartdevicelink.proxy.rpc.ScrollableMessageResponse;
+import com.smartdevicelink.proxy.rpc.SendHapticDataResponse;
 import com.smartdevicelink.proxy.rpc.SendLocationResponse;
 import com.smartdevicelink.proxy.rpc.SetAppIconResponse;
 import com.smartdevicelink.proxy.rpc.SetDisplayLayoutResponse;
 import com.smartdevicelink.proxy.rpc.SetGlobalPropertiesResponse;
+import com.smartdevicelink.proxy.rpc.SetInteriorVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.SetMediaClockTimerResponse;
 import com.smartdevicelink.proxy.rpc.Show;
 import com.smartdevicelink.proxy.rpc.ShowConstantTbtResponse;
@@ -109,6 +117,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final int BTN_NOTIFICATION_ID = 2;
     private static final int BTN_DELETE_ID = 3;
     private static final int CLEAR_NOTIFICATION_QUEUE_CMD_ID = 4;
+    private static final String CHANNEL_ID = "12345";
 
 
     //The proxy handles communication between the application and SDL
@@ -134,6 +143,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         break;
                     case NOTIFICATION_TEXT_EXTRA:
                         notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
+                        Log.e("SdlService", "MAIN TEXT1: " + mainText1);
                         break;
                     case SONG_TITLE_EXTRA:
                         String title = intent.getExtras().getString(EXTRA_CONTENT);
@@ -176,16 +186,6 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }else if(forceConnect){
             proxy.forceOnConnected();
-        }
-
-        if(proxy != null){
-            try {
-                if(mainText1.length() == 0 && mainText2.length() == 0)
-                    mainText1 = "FiestaConnect";
-                proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
-            } catch (SdlException e){
-                e.printStackTrace();
-            }
         }
 
         if(notificationToShow != null && proxy != null) {
@@ -234,6 +234,16 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }
 
+        if(proxy != null) {
+            if(mainText1.length() == 0 && mainText2.length() == 0 && mainText3.length() == 0)
+                mainText1 = "FiestaConnect";
+            try {
+                proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
+            } catch (SdlException e) {
+                e.printStackTrace();
+            }
+        }
+
         //use START_STICKY because we want the SDLService to be explicitly started and stopped as needed.
         return START_STICKY;
     }
@@ -243,6 +253,23 @@ public class SdlService extends Service implements IProxyListenerALM {
         intent.putExtra(EXTRA_TYPE, contentType);
         intent.putExtra(EXTRA_CONTENT, content);
         return intent;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(...);
+            Notification serviceNotification = new Notification.Builder(this, CHANNEL_ID)
+            .setContentTitle("FiestaConnect")
+            .setSmallIcon(....)
+            .setLargeIcon(...)
+            .setContentText(...)
+            .setChannelId(channel.getId())
+                    .build();
+            startForeground(id, serviceNotification);
+        }*/
     }
 
     @Override
@@ -315,6 +342,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
+                startService(NotificationListener.getIntent(this, NotificationListener.CHECK_SONG_EXTRA));
                 break;
             case HMI_LIMITED:
                 break;
@@ -377,7 +405,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     public void onOnCommand(OnCommand notification) {
         switch (notification.getCmdID()){
             case CLEAR_NOTIFICATION_QUEUE_CMD_ID:
-                startService(NotificationListener.getIntent(this, NotificationListener.DELETE_NOTIFICATION_QUEUE));
+                startService(NotificationListener.getIntent(this, NotificationListener.DELETE_NOTIFICATION_QUEUE_EXTRA));
         }
     }
 
@@ -490,7 +518,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         startService(NotificationListener.getIntent(this, NotificationListener.NEXT_COMMAND_EXTRA));
                         break;
                     case BTN_DELETE_ID:
-                        startService(NotificationListener.getIntent(this, NotificationListener.REMOVE_CURRENT_NOTIFICATION));
+                        startService(NotificationListener.getIntent(this, NotificationListener.REMOVE_CURRENT_NOTIFICATION_EXTRA));
                         break;
                     case BTN_PLAY_PAUSE_ID:
                         /*Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);
@@ -716,5 +744,40 @@ public class SdlService extends Service implements IProxyListenerALM {
     public void onOnWayPointChange(OnWayPointChange notification) {
 
     }
-    // Inherited methods from IProxyListenerALM
+
+    @Override
+    public void onGetSystemCapabilityResponse(GetSystemCapabilityResponse response) {
+
+    }
+
+    @Override
+    public void onGetInteriorVehicleDataResponse(GetInteriorVehicleDataResponse response) {
+
+    }
+
+    @Override
+    public void onButtonPressResponse(ButtonPressResponse response) {
+
+    }
+
+    @Override
+    public void onSetInteriorVehicleDataResponse(SetInteriorVehicleDataResponse response) {
+
+    }
+
+    @Override
+    public void onOnInteriorVehicleData(OnInteriorVehicleData notification) {
+
+    }
+
+    @Override
+    public void onSendHapticDataResponse(SendHapticDataResponse response) {
+
+    }
+
+    @Override
+    public void onOnRCStatus(OnRCStatus notification) {
+
+    }
+
 }
