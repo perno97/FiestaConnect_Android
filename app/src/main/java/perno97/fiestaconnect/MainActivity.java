@@ -37,5 +37,6 @@ public class MainActivity extends AppCompatActivity {
     private void send(String contentType) {
         EditText toSend = findViewById(R.id.txtToSend);
         startService(SdlService.getIntent(getApplicationContext(), contentType, toSend.getText().toString()));
+        //startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.CHECK_SONG_EXTRA));
     }
 }

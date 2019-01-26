@@ -111,12 +111,14 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final String BTN_NOTIFICATION_STRING = "Notifiche";
     private static final String BTN_DELETE_STRING = "Rimuovi";
     private static final String CLEAR_NOTIFICATION_QUEUE_CMD_STRING = "Reset coda notifiche";
+    private static final String CHECK_SONG_PLAYING_TITLE_CMD_STRING = "Controlla titolo canzone in riproduzione";
 
     private static final int BTN_NEXT_ID = 0;
     private static final int BTN_PLAY_PAUSE_ID = 1;
     private static final int BTN_NOTIFICATION_ID = 2;
     private static final int BTN_DELETE_ID = 3;
     private static final int CLEAR_NOTIFICATION_QUEUE_CMD_ID = 4;
+    private static final int CHECK_SONG_PLAYING_TITLE_CMD_ID = 5;
     private static final String CHANNEL_ID = "12345";
 
 
@@ -339,10 +341,11 @@ public class SdlService extends Service implements IProxyListenerALM {
                     proxy.sendRPCRequest(subscribeSeekRightRequest);
                     proxy.sendRPCRequest(subscribeSeekLeftRequest);
                     proxy.addCommand(CLEAR_NOTIFICATION_QUEUE_CMD_ID,CLEAR_NOTIFICATION_QUEUE_CMD_STRING,CorrelationIdGenerator.generateId());
+                    proxy.addCommand(CHECK_SONG_PLAYING_TITLE_CMD_ID, CHECK_SONG_PLAYING_TITLE_CMD_STRING, CorrelationIdGenerator.generateId());
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
-                startService(NotificationListener.getIntent(this, NotificationListener.CHECK_SONG_EXTRA));
+                startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.CHECK_SONG_EXTRA));
                 break;
             case HMI_LIMITED:
                 break;
@@ -405,7 +408,13 @@ public class SdlService extends Service implements IProxyListenerALM {
     public void onOnCommand(OnCommand notification) {
         switch (notification.getCmdID()){
             case CLEAR_NOTIFICATION_QUEUE_CMD_ID:
-                startService(NotificationListener.getIntent(this, NotificationListener.DELETE_NOTIFICATION_QUEUE_EXTRA));
+                startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.DELETE_NOTIFICATION_QUEUE_EXTRA));
+                break;
+            case CHECK_SONG_PLAYING_TITLE_CMD_ID:
+                startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.CHECK_SONG_EXTRA));
+                break;
+            default:
+                break;
         }
     }
 
@@ -515,10 +524,10 @@ public class SdlService extends Service implements IProxyListenerALM {
             case CUSTOM_BUTTON:
                 switch (notification.getCustomButtonName()) {
                     case BTN_NEXT_ID:
-                        startService(NotificationListener.getIntent(this, NotificationListener.NEXT_COMMAND_EXTRA));
+                        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.NEXT_COMMAND_EXTRA));
                         break;
                     case BTN_DELETE_ID:
-                        startService(NotificationListener.getIntent(this, NotificationListener.REMOVE_CURRENT_NOTIFICATION_EXTRA));
+                        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.REMOVE_CURRENT_NOTIFICATION_EXTRA));
                         break;
                     case BTN_PLAY_PAUSE_ID:
                         /*Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);
@@ -535,7 +544,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         }
                         break;
                     case BTN_NOTIFICATION_ID:
-                        startService(NotificationListener.getIntent(this, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
+                        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
                     default:
                         break;
                 }

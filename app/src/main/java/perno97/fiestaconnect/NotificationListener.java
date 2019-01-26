@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
+import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
@@ -40,11 +41,12 @@ public class NotificationListener extends NotificationListenerService implements
 
     private static final String NOTHING_TO_SHOW_STRING = "Niente da mostrare.";
 
-    private LinkedList<StatusBarNotification> notificationQueue;
+    private LinkedList<StatusBarNotification> notificationQueue = new LinkedList<>();
     private StatusBarNotification showingNotification;
     private String songTitle = "";
     private MediaSessionManager mgr;
     private MediaControllerCallback mediaControllerCallback;
+    private boolean isNotificationListenerEnabled;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -57,15 +59,22 @@ public class NotificationListener extends NotificationListenerService implements
     @Override
     public void onCreate() {
         super.onCreate();
-        mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
-        mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
-        mediaControllerCallback = new MediaControllerCallback();
-        reset();
+        try {
+            mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
+            mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
+            mediaControllerCallback = new MediaControllerCallback();
+            reset();
+        }
+        catch (Exception e) {
+            Log.e(TAG, "Probabilmente non autorizzato notification listener");
+        }
+
     }
 
     @Override
     public void onDestroy() {
-        mgr.removeOnActiveSessionsChangedListener(this);
+        if(mgr != null)
+            mgr.removeOnActiveSessionsChangedListener(this);
         super.onDestroy();
     }
 
@@ -86,12 +95,46 @@ public class NotificationListener extends NotificationListenerService implements
                 break;
             case CHECK_SONG_EXTRA:
                 checkSongPlaying();
+                break;
             default:
                 break;
         }
     }
 
     private void checkSongPlaying() {
+        Log.e(TAG, "CONTROLLO CANZONE IN RIPRODUZIONE");
+        if(mgr != null) {
+            List<MediaController> controllers = mgr.getActiveSessions(new ComponentName(getApplicationContext(), getClass()));
+            if (controllers != null) {
+                for (MediaController c : controllers) {
+                    PlaybackState p = c.getPlaybackState();
+                    if (p != null && p.getState() == PlaybackState.STATE_PLAYING) {
+                        Log.e(TAG, "CANZONE IN RIPRODUZIONE PKG:" + c.getPackageName());
+                        MediaMetadata meta = c.getMetadata();
+                        if(meta != null) {
+                            songTitle = meta.getString(MediaMetadata.METADATA_KEY_TITLE);
+                            Log.e(TAG, "FORZATO CONTROLLO TITOLO: " + songTitle);
+                            showSongTitle();
+                        }
+                        else
+                            songTitle = "";
+                    }
+                    else {
+                        Log.e(TAG, c.getPackageName() + "NON IN RIPRODUZIONE");
+                        if (p != null) {
+                            Log.e(TAG, "PLAYBACKSTATE : " + p.getState());
+                        }
+                        songTitle = "";
+                    }
+                }
+            }
+            else
+                Log.e(TAG,"NULL LISTA CONTROLLERS");
+                songTitle = "";
+        }
+        else
+            Log.e(TAG, "NULL MEDIASESSIONMANAGER");
+            songTitle = "";
     }
 
     private void setShowingNotification(StatusBarNotification sbn) {
@@ -102,7 +145,15 @@ public class NotificationListener extends NotificationListenerService implements
     public void onListenerConnected() {
         super.onListenerConnected();
         Log.e(TAG,"NOTIFICATION LISTENER CONNECTED");
-        Toast.makeText(this, R.string.toastNotList, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, R.string.toastNotList, Toast.LENGTH_SHORT).show();
+        isNotificationListenerEnabled = true;
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        super.onListenerDisconnected();
+        Log.e(TAG,"NOTIFICATION LISTENER DISCONNECTED");
+        isNotificationListenerEnabled = false;
     }
 
     @Override
@@ -113,7 +164,7 @@ public class NotificationListener extends NotificationListenerService implements
                 showNotification(sbn);
             else {
                 if (notificationQueue.size() > QUEUE_SIZE_THRESHOLD)
-                    setNotificationQueue(new LinkedList<StatusBarNotification>());
+                    setNotificationQueue(new LinkedList<>());
                 notificationQueue.add(sbn);
             }
         }
@@ -139,6 +190,7 @@ public class NotificationListener extends NotificationListenerService implements
     }
 
     private void showSongTitle() {
+        Log.e(TAG, "TITOLO INVIATO SDL: " + songTitle);
         startService(SdlService.getIntent(getApplicationContext(),SdlService.SONG_TITLE_EXTRA, songTitle));
     }
 
