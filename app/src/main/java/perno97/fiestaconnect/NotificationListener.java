@@ -85,10 +85,13 @@ public class NotificationListener extends NotificationListenerService implements
                 reset();
                 break;
             case CHECK_SONG_EXTRA:
-                showSongTitle();
+                checkSongPlaying();
             default:
                 break;
         }
+    }
+
+    private void checkSongPlaying() {
     }
 
     private void setShowingNotification(StatusBarNotification sbn) {
@@ -191,12 +194,14 @@ public class NotificationListener extends NotificationListenerService implements
                 songTitle = "";
 
             Log.e(TAG,"METADATA CHANGED - TITLE: " + songTitle);
+            showSongTitle();
         }
 
         @Override
         public void onSessionDestroyed() {
             super.onSessionDestroyed();
             songTitle = "";
+            showSongTitle();
         }
     }
 
