@@ -287,6 +287,7 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }
 
+        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.RESET_EXTRA));
         super.onDestroy();
     }
 

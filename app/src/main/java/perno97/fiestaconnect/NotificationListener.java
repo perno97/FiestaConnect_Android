@@ -38,6 +38,7 @@ public class NotificationListener extends NotificationListenerService implements
     public static final String REMOVE_CURRENT_NOTIFICATION_EXTRA = "removeCurrent";
     public static final String DELETE_NOTIFICATION_QUEUE_EXTRA = "deleteQueue";
     public static final String CHECK_SONG_EXTRA = "checkSong";
+    public static final String RESET_EXTRA = "reset";
 
     private static final String NOTHING_TO_SHOW_STRING = "Niente da mostrare.";
 
@@ -52,6 +53,11 @@ public class NotificationListener extends NotificationListenerService implements
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_COMMAND) != null)
             commandReceived(intent.getExtras().getString(EXTRA_COMMAND));
+        if(mgr == null) {
+            mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
+            mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
+            mediaControllerCallback = new MediaControllerCallback();
+        }
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -63,7 +69,8 @@ public class NotificationListener extends NotificationListenerService implements
             mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
             mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
             mediaControllerCallback = new MediaControllerCallback();
-            reset();
+            notificationQueue = new LinkedList<>();
+            showingNotification = null;
         }
         catch (Exception e) {
             Log.e(TAG, "Probabilmente non autorizzato notification listener");
@@ -96,6 +103,8 @@ public class NotificationListener extends NotificationListenerService implements
             case CHECK_SONG_EXTRA:
                 checkSongPlaying();
                 break;
+            case RESET_EXTRA:
+                reset();
             default:
                 break;
         }
@@ -216,8 +225,8 @@ public class NotificationListener extends NotificationListenerService implements
     }
 
     private void reset() {
-        notificationQueue = new LinkedList<>();
-        showingNotification = null;
+        if(mgr != null)
+            mgr.removeOnActiveSessionsChangedListener(this);
     }
 
     public static Intent getIntent(Context context, String command) {
