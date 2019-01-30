@@ -105,6 +105,7 @@ public class NotificationListener extends NotificationListenerService implements
                 break;
             case RESET_EXTRA:
                 reset();
+                break;
             default:
                 break;
         }
