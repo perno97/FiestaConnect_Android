@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void send(String contentType) {
+    private void send(String contentType) {//TODO non deve inviare se non è avviato, usare SharedPreferences
         EditText toSend = findViewById(R.id.txtToSend);
         startService(SdlService.getIntent(getApplicationContext(), contentType, toSend.getText().toString()));
         //startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.CHECK_SONG_EXTRA));
