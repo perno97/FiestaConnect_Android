@@ -21,15 +21,11 @@ import java.util.List;
 
 public class NotificationListener extends NotificationListenerService implements  MediaSessionManager.OnActiveSessionsChangedListener{
 
-
     private static final int QUEUE_SIZE_THRESHOLD = 200;
-    private String TAG = "notificationListener";
+    private static final String TAG = "notificationListener";
 
-    private static final String PLAY_MUSIC_PACK_NAME = "com.google.android.music";
     public static final String WHATSAPP_PACK_NAME = "com.whatsapp";
     public static final String TELEGRAM_PACK_NAME = "org.telegram.messenger";
-    private static final String YOUTUBE_PACK_NAME = "com.google.android.youtube";
-    private static final String SPOTIFY_PACK_NAME = "com.spotify.music";
     private static final String MESSENGER_PLUS_PACK_NAME = "org.telegram.plus";
 
     public static final String EXTRA_COMMAND = "command";
@@ -38,7 +34,8 @@ public class NotificationListener extends NotificationListenerService implements
     public static final String REMOVE_CURRENT_NOTIFICATION_EXTRA = "removeCurrent";
     public static final String DELETE_NOTIFICATION_QUEUE_EXTRA = "deleteQueue";
     public static final String CHECK_SONG_EXTRA = "checkSong";
-    public static final String RESET_EXTRA = "reset";
+    public static final String STOPPED_SDL_COMMAND_EXTRA = "SdlStopped";
+    public static final String STARTED_SDL_COMMAND_EXTRA = "SdlStarted";
 
     private static final String NOTHING_TO_SHOW_STRING = "Niente da mostrare.";
 
@@ -47,17 +44,17 @@ public class NotificationListener extends NotificationListenerService implements
     private String songTitle = "";
     private MediaSessionManager mgr;
     private MediaControllerCallback mediaControllerCallback;
-    private boolean isNotificationListenerEnabled;
+    private boolean isSDLRunning;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_COMMAND) != null)
             commandReceived(intent.getExtras().getString(EXTRA_COMMAND));
-        if(mgr == null) {
+        /*if(mgr == null) {
             mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
             mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
             mediaControllerCallback = new MediaControllerCallback();
-        }
+        }*/
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -65,6 +62,7 @@ public class NotificationListener extends NotificationListenerService implements
     @Override
     public void onCreate() {
         super.onCreate();
+        isSDLRunning = false;
         try {
             mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
             mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
@@ -98,13 +96,16 @@ public class NotificationListener extends NotificationListenerService implements
                 removeCurrentNotification();
                 break;
             case DELETE_NOTIFICATION_QUEUE_EXTRA:
-                reset();
+                setNotificationQueue(notificationQueue = new LinkedList<>());
                 break;
             case CHECK_SONG_EXTRA:
                 checkSongPlaying();
                 break;
-            case RESET_EXTRA:
-                reset();
+            case STARTED_SDL_COMMAND_EXTRA:
+                isSDLRunning = true;
+                break;
+            case STOPPED_SDL_COMMAND_EXTRA:
+                isSDLRunning = false;
                 break;
             default:
                 break;
@@ -156,52 +157,27 @@ public class NotificationListener extends NotificationListenerService implements
         super.onListenerConnected();
         Log.e(TAG,"NOTIFICATION LISTENER CONNECTED");
         //Toast.makeText(this, R.string.toastNotList, Toast.LENGTH_SHORT).show();
-        isNotificationListenerEnabled = true;
     }
 
     @Override
     public void onListenerDisconnected() {
         super.onListenerDisconnected();
         Log.e(TAG,"NOTIFICATION LISTENER DISCONNECTED");
-        isNotificationListenerEnabled = false;
     }
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         //Log.e(TAG, "NOTIFICATION RECEIVED");
-        if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME)) {
-            if (showingNotification == null)
+        if(isSDLRunning && (sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME))) {
+            if (showingNotification == null && showingNotification.getKey() != sbn.getKey())
                 showNotification(sbn);
             else {
-                if (notificationQueue.size() > QUEUE_SIZE_THRESHOLD)
+                if (notificationQueue.size() >= QUEUE_SIZE_THRESHOLD)
                     setNotificationQueue(new LinkedList<>());
-                notificationQueue.add(sbn);
+                if(notificationQueue.getLast().getKey() != sbn.getKey())
+                    notificationQueue.add(sbn);
             }
         }
-        /*if(sbn.getPackageName().equals(PLAY_MUSIC_PACK_NAME) || sbn.getPackageName().equals(YOUTUBE_PACK_NAME) || sbn.getPackageName().equals(SPOTIFY_PACK_NAME)){
-            //songTitle = sbn.getNotification().extras.getString("android.title");
-            songTitle = sbn.getNotification().extras.getCharSequence("android.title").toString();
-            reproducingSongNotificationId = sbn.getKey();
-            showSongTitle();
-        }*/
-    }
-
-    @Override
-    public void onNotificationRemoved(StatusBarNotification sbn) {
-        super.onNotificationRemoved(sbn);
-        //Log.e(TAG, "NOTIFICATION REMOVED");
-        /*new Thread(() -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();*/
-    }
-
-    private void showSongTitle() {
-        Log.e(TAG, "TITOLO INVIATO SDL: " + songTitle);
-        startService(SdlService.getIntent(getApplicationContext(),SdlService.SONG_TITLE_EXTRA, songTitle));
     }
 
     private void showNotification(StatusBarNotification sbn) {
@@ -216,24 +192,12 @@ public class NotificationListener extends NotificationListenerService implements
         }
     }
 
-    public void showNextNotification(){
+    public void showNextNotification() {
         showingNotification = null;
-        if(notificationQueue.size() > 0){
+        if (notificationQueue.size() > 0) {
             showNotification(notificationQueue.poll());
-        }
-        else
+        } else
             startService(SdlService.getIntent(getApplicationContext(), SdlService.TEXT_TO_SHOW_EXTRA, NOTHING_TO_SHOW_STRING));
-    }
-
-    private void reset() {
-        if(mgr != null)
-            mgr.removeOnActiveSessionsChangedListener(this);
-    }
-
-    public static Intent getIntent(Context context, String command) {
-        Intent intent = new Intent(context, NotificationListener.class);
-        intent.putExtra(EXTRA_COMMAND, command);
-        return intent;
     }
 
     public void removeCurrentNotification(){
@@ -256,15 +220,20 @@ public class NotificationListener extends NotificationListenerService implements
                 songTitle = "";
 
             Log.e(TAG,"METADATA CHANGED - TITLE: " + songTitle);
-            showSongTitle();
+            if(isSDLRunning) showSongTitle();
         }
 
         @Override
         public void onSessionDestroyed() {
             super.onSessionDestroyed();
             songTitle = "";
-            showSongTitle();
+            if(isSDLRunning) showSongTitle();
         }
+    }
+
+    private void showSongTitle() {
+        Log.e(TAG, "TITOLO INVIATO SDL: " + songTitle);
+        startService(SdlService.getIntent(getApplicationContext(),SdlService.SONG_TITLE_EXTRA, songTitle));
     }
 
     @Override
@@ -275,15 +244,16 @@ public class NotificationListener extends NotificationListenerService implements
                 c.registerCallback(mediaControllerCallback);
                 Log.e(TAG,"CALLBACK REGISTRATA PER --> " + c.getPackageName());
             }
-            /*MediaMetadata metadata = controllers.get(0).getMetadata();
-            if(metadata != null)
-                songTitle = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
-            else
-                songTitle = "";*/
         }
         else
             songTitle = "";
         Log.e(TAG, "ACTIVE SESSIONS CHANGED - TITLE: " + songTitle);
-        showSongTitle();
+        if(isSDLRunning) showSongTitle();
+    }
+
+    public static Intent getIntent(Context context, String command) {
+        Intent intent = new Intent(context, NotificationListener.class);
+        intent.putExtra(EXTRA_COMMAND, command);
+        return intent;
     }
 }

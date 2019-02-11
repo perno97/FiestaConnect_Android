@@ -127,10 +127,13 @@ public class SdlService extends Service implements IProxyListenerALM {
     private String mainText1="";
     private String mainText2="";
     private String mainText3="";
+    private Context context;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
+        context = getApplicationContext();
+        context.startService(NotificationListener.getIntent(context, NotificationListener.STARTED_SDL_COMMAND_EXTRA));
         String txtExtra = null;
         String notificationToShow = null;
         String txtToSpeak = null;
@@ -287,13 +290,14 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }
 
-        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.RESET_EXTRA));
+        context.startService(NotificationListener.getIntent(context, NotificationListener.STOPPED_SDL_COMMAND_EXTRA));
         super.onDestroy();
     }
 
     @Override
     public void onProxyClosed(String info, Exception e, SdlDisconnectedReason reason) {
         //Stop the service
+        context.startService(NotificationListener.getIntent(context, NotificationListener.STOPPED_SDL_COMMAND_EXTRA));
         stopSelf();
     }
 
@@ -346,7 +350,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 } catch (SdlException e) {
                     //TODO notificare errore
                 }
-                startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.CHECK_SONG_EXTRA));
+                startService(NotificationListener.getIntent(context, NotificationListener.CHECK_SONG_EXTRA));
                 break;
             case HMI_LIMITED:
                 break;
@@ -409,10 +413,10 @@ public class SdlService extends Service implements IProxyListenerALM {
     public void onOnCommand(OnCommand notification) {
         switch (notification.getCmdID()){
             case CLEAR_NOTIFICATION_QUEUE_CMD_ID:
-                startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.DELETE_NOTIFICATION_QUEUE_EXTRA));
+                startService(NotificationListener.getIntent(context, NotificationListener.DELETE_NOTIFICATION_QUEUE_EXTRA));
                 break;
             case CHECK_SONG_PLAYING_TITLE_CMD_ID:
-                startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.CHECK_SONG_EXTRA));
+                startService(NotificationListener.getIntent(context, NotificationListener.CHECK_SONG_EXTRA));
                 break;
             default:
                 break;
@@ -525,10 +529,10 @@ public class SdlService extends Service implements IProxyListenerALM {
             case CUSTOM_BUTTON:
                 switch (notification.getCustomButtonName()) {
                     case BTN_NEXT_ID:
-                        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.NEXT_COMMAND_EXTRA));
+                        startService(NotificationListener.getIntent(context, NotificationListener.NEXT_COMMAND_EXTRA));
                         break;
                     case BTN_DELETE_ID:
-                        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.REMOVE_CURRENT_NOTIFICATION_EXTRA));
+                        startService(NotificationListener.getIntent(context, NotificationListener.REMOVE_CURRENT_NOTIFICATION_EXTRA));
                         break;
                     case BTN_PLAY_PAUSE_ID:
                         /*Intent intentPlayPause = new Intent(Intent.ACTION_MEDIA_BUTTON);
@@ -545,7 +549,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                         }
                         break;
                     case BTN_NOTIFICATION_ID:
-                        startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
+                        startService(NotificationListener.getIntent(context, NotificationListener.FORCE_SHOW_COMMAND_EXTRA));
                     default:
                         break;
                 }
