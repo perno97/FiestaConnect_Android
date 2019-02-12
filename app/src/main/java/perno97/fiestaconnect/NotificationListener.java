@@ -3,6 +3,7 @@ package perno97.fiestaconnect;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
@@ -105,6 +106,11 @@ public class NotificationListener extends NotificationListenerService implements
         }
     }
 
+    private boolean isRunning(){
+        SharedPreferences preferences = getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        return preferences.getBoolean(getString(R.string.running), false);
+    }
+
     private void checkSongPlaying() {
         //Log.e(TAG, "CONTROLLO CANZONE IN RIPRODUZIONE");
         if (controllers != null) {
@@ -116,7 +122,7 @@ public class NotificationListener extends NotificationListenerService implements
                     if(meta != null) {
                         songTitle = meta.getString(MediaMetadata.METADATA_KEY_TITLE);
                         //Log.e(TAG, "FORZATO CONTROLLO TITOLO: " + songTitle);
-                        showSongTitle();
+                        if(isSDLRunning) showSongTitle();
                     }
                     else
                         songTitle = "";
