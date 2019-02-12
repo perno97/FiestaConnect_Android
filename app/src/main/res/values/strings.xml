@@ -7,4 +7,7 @@
     <string name="btnNotifSettingsText">Consenti accesso notifiche</string>
     <string name="btn_speak_text">Parla</string>
     <string name="reset_queue">Reset</string>
+    <string name="running">service_running</string>
+    <string name="preference_file_key">preferences</string>
+    <string name="refresh">Refresh</string>
 </resources>

@@ -1,15 +1,21 @@
 package perno97.fiestaconnect;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.KeyEvent;
 
 import com.smartdevicelink.exception.SdlException;
+import com.smartdevicelink.managers.SdlManager;
 import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
@@ -120,6 +126,8 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final int CLEAR_NOTIFICATION_QUEUE_CMD_ID = 4;
     private static final int CHECK_SONG_PLAYING_TITLE_CMD_ID = 5;
     private static final String CHANNEL_ID = "12345";
+    private static final String CHANNEL_NAME = "Default channel";
+    private static final int NOTIFICATION_ID = 44;
 
 
     //The proxy handles communication between the application and SDL
@@ -128,53 +136,16 @@ public class SdlService extends Service implements IProxyListenerALM {
     private String mainText2="";
     private String mainText3="";
     private Context context;
+    private NotificationChannel notificationChannel;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
         context = getApplicationContext();
         context.startService(NotificationListener.getIntent(context, NotificationListener.STARTED_SDL_COMMAND_EXTRA));
-        String txtExtra = null;
-        String notificationToShow = null;
-        String txtToSpeak = null;
-        if(intent != null)
-            if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_TYPE) != null && intent.getExtras().getString(EXTRA_CONTENT)!= null){
-                switch (intent.getExtras().getString(EXTRA_TYPE)){
-                    case TEXT_TO_SHOW_EXTRA:
-                        txtExtra = intent.getExtras().getString(EXTRA_CONTENT);
-                        break;
-                    case TEXT_TO_SPEAK_EXTRA:
-                        txtToSpeak = intent.getExtras().getString(EXTRA_CONTENT);
-                        break;
-                    case NOTIFICATION_TEXT_EXTRA:
-                        notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
-                        Log.e("SdlService", "MAIN TEXT1: " + mainText1);
-                        break;
-                    case SONG_TITLE_EXTRA:
-                        String title = intent.getExtras().getString(EXTRA_CONTENT);
-                        try {
-                            if (title.length() > 15 && title.length() <= 30) {
-                                mainText1 = title.substring(0, 16);
-                                mainText2 = title.substring(16, title.length());
-                                mainText3 = "";
-                            } else if (title.length() > 30) {
-                                mainText1 = title.substring(0, 16);
-                                mainText2 = title.substring(16, 31);
-                                mainText3 = title.substring(31, title.length());
-                            } else {
-                                mainText1 = title;
-                                mainText2 = "";
-                                mainText3 = "";
-                            }
-                        } catch (IndexOutOfBoundsException e) {
-                            mainText1 = "Out of bound";
-                            mainText2 = String.valueOf(title.length());
-                            mainText3 = "15 o 30";
-                        }
-                    default:
-                        break;
-                }
-            }
+        writeSharedPreference(true);
+
+        manageIntent(intent);
 
         if (proxy == null) {
             try {
@@ -191,6 +162,62 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }else if(forceConnect){
             proxy.forceOnConnected();
+        }
+
+        if(proxy != null) {
+            if(mainText1.length() == 0 && mainText2.length() == 0 && mainText3.length() == 0)
+                mainText1 = "FiestaConnect";
+            try {
+                proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
+            } catch (SdlException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //use START_STICKY because we want the SDLService to be explicitly started and stopped as needed.
+        return START_STICKY;
+    }
+
+    private void manageIntent(Intent intent) {
+        String txtExtra = null;
+        String notificationToShow = null;
+        String txtToSpeak = null;
+        if(intent != null && intent.getExtras() != null && intent.getExtras().getString(EXTRA_TYPE) != null && intent.getExtras().getString(EXTRA_CONTENT)!= null){
+            switch (intent.getExtras().getString(EXTRA_TYPE)){
+                case TEXT_TO_SHOW_EXTRA:
+                    txtExtra = intent.getExtras().getString(EXTRA_CONTENT);
+                    break;
+                case TEXT_TO_SPEAK_EXTRA:
+                    txtToSpeak = intent.getExtras().getString(EXTRA_CONTENT);
+                    break;
+                case NOTIFICATION_TEXT_EXTRA:
+                    notificationToShow = intent.getExtras().getString(EXTRA_CONTENT);
+                    Log.e("SdlService", "MAIN TEXT1: " + mainText1);
+                    break;
+                case SONG_TITLE_EXTRA:
+                    String title = intent.getExtras().getString(EXTRA_CONTENT);
+                    try {
+                        if (title.length() > 15 && title.length() <= 30) {
+                            mainText1 = title.substring(0, 16);
+                            mainText2 = title.substring(16, title.length());
+                            mainText3 = "";
+                        } else if (title.length() > 30) {
+                            mainText1 = title.substring(0, 16);
+                            mainText2 = title.substring(16, 31);
+                            mainText3 = title.substring(31, title.length());
+                        } else {
+                            mainText1 = title;
+                            mainText2 = "";
+                            mainText3 = "";
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        mainText1 = "Out of bound";
+                        mainText2 = String.valueOf(title.length());
+                        mainText3 = "15 o 30";
+                    }
+                default:
+                    break;
+            }
         }
 
         if(notificationToShow != null && proxy != null) {
@@ -238,19 +265,13 @@ public class SdlService extends Service implements IProxyListenerALM {
                 e.printStackTrace();
             }
         }
+    }
 
-        if(proxy != null) {
-            if(mainText1.length() == 0 && mainText2.length() == 0 && mainText3.length() == 0)
-                mainText1 = "FiestaConnect";
-            try {
-                proxy.show(mainText1, mainText2, mainText3, null, null, null, null, TextAlignment.CENTERED,CorrelationIdGenerator.generateId());
-            } catch (SdlException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //use START_STICKY because we want the SDLService to be explicitly started and stopped as needed.
-        return START_STICKY;
+    private void writeSharedPreference(boolean value){
+        SharedPreferences preferences = getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(getString(R.string.running), value);
+        editor.apply();
     }
 
     public static Intent getIntent(Context context, String contentType, String content){
@@ -263,18 +284,19 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onCreate() {
         super.onCreate();
-        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.createNotificationChannel(...);
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance);
+            notificationManager.createNotificationChannel(notificationChannel);
             Notification serviceNotification = new Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("FiestaConnect")
-            .setSmallIcon(....)
-            .setLargeIcon(...)
-            .setContentText(...)
-            .setChannelId(channel.getId())
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentText("Running")
+            .setChannelId(CHANNEL_ID)
                     .build();
-            startForeground(id, serviceNotification);
-        }*/
+            startForeground(NOTIFICATION_ID, serviceNotification);
+        }
     }
 
     @Override
@@ -288,6 +310,14 @@ public class SdlService extends Service implements IProxyListenerALM {
             } finally {
                 proxy = null;
             }
+        }
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if(notificationManager!=null){ //If this is the only notification on your channel
+                notificationManager.deleteNotificationChannel(notificationChannel.getId());
+            }
+            stopForeground(true);
         }
 
         context.startService(NotificationListener.getIntent(context, NotificationListener.STOPPED_SDL_COMMAND_EXTRA));

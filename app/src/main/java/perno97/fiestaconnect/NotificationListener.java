@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
-import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
@@ -13,9 +12,7 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -47,19 +44,6 @@ public class NotificationListener extends NotificationListenerService implements
     private boolean isSDLRunning;
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_COMMAND) != null)
-            commandReceived(intent.getExtras().getString(EXTRA_COMMAND));
-        /*if(mgr == null) {
-            mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
-            mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
-            mediaControllerCallback = new MediaControllerCallback();
-        }*/
-
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
         isSDLRunning = false;
@@ -81,6 +65,19 @@ public class NotificationListener extends NotificationListenerService implements
         if(mgr != null)
             mgr.removeOnActiveSessionsChangedListener(this);
         super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_COMMAND) != null)
+            commandReceived(intent.getExtras().getString(EXTRA_COMMAND));
+        /*if(mgr == null) {
+            mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
+            mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
+            mediaControllerCallback = new MediaControllerCallback();
+        }*/
+
+        return super.onStartCommand(intent, flags, startId);
     }
 
     private void commandReceived(String string) {
@@ -150,19 +147,6 @@ public class NotificationListener extends NotificationListenerService implements
 
     private void setShowingNotification(StatusBarNotification sbn) {
         showingNotification = sbn;
-    }
-
-    @Override
-    public void onListenerConnected() {
-        super.onListenerConnected();
-        Log.e(TAG,"NOTIFICATION LISTENER CONNECTED");
-        //Toast.makeText(this, R.string.toastNotList, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onListenerDisconnected() {
-        super.onListenerDisconnected();
-        Log.e(TAG,"NOTIFICATION LISTENER DISCONNECTED");
     }
 
     @Override
@@ -249,6 +233,19 @@ public class NotificationListener extends NotificationListenerService implements
             songTitle = "";
         Log.e(TAG, "ACTIVE SESSIONS CHANGED - TITLE: " + songTitle);
         if(isSDLRunning) showSongTitle();
+    }
+
+    @Override
+    public void onListenerConnected() {
+        super.onListenerConnected();
+        Log.e(TAG,"NOTIFICATION LISTENER CONNECTED");
+        //Toast.makeText(this, R.string.toastNotList, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        super.onListenerDisconnected();
+        Log.e(TAG,"NOTIFICATION LISTENER DISCONNECTED");
     }
 
     public static Intent getIntent(Context context, String command) {
