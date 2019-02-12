@@ -15,14 +15,12 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.smartdevicelink.exception.SdlException;
-import com.smartdevicelink.managers.SdlManager;
 import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
 import com.smartdevicelink.proxy.interfaces.IProxyListenerALM;
 import com.smartdevicelink.proxy.rpc.AddCommandResponse;
 import com.smartdevicelink.proxy.rpc.AddSubMenuResponse;
-import com.smartdevicelink.proxy.rpc.Alert;
 import com.smartdevicelink.proxy.rpc.AlertManeuverResponse;
 import com.smartdevicelink.proxy.rpc.AlertResponse;
 import com.smartdevicelink.proxy.rpc.ButtonPressResponse;
@@ -201,12 +199,12 @@ public class SdlService extends Service implements IProxyListenerALM {
                     try {
                         if (title.length() > 15 && title.length() <= 30) {
                             mainText1 = title.substring(0, 16);
-                            mainText2 = title.substring(16, title.length());
+                            mainText2 = title.substring(16);
                             mainText3 = "";
                         } else if (title.length() > 30) {
                             mainText1 = title.substring(0, 16);
                             mainText2 = title.substring(16, 31);
-                            mainText3 = title.substring(31, title.length());
+                            mainText3 = title.substring(31);
                         } else {
                             mainText1 = title;
                             mainText2 = "";
@@ -257,11 +255,7 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
         }
         else if(txtToSpeak != null && proxy != null){
-            ScrollableMessage message = new ScrollableMessage();
-            message.setScrollableMessageBody(txtExtra);
-            message.setCorrelationID(CorrelationIdGenerator.generateId());
             try {
-                proxy.sendRPCRequest(message);
                 proxy.speak(txtToSpeak, CorrelationIdGenerator.generateId());
             } catch (SdlException e) {
                 e.printStackTrace();

@@ -72,11 +72,6 @@ public class NotificationListener extends NotificationListenerService implements
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent.getExtras() != null && intent.getExtras().getString(EXTRA_COMMAND) != null)
             commandReceived(intent.getExtras().getString(EXTRA_COMMAND));
-        /*if(mgr == null) {
-            mgr = (MediaSessionManager) getApplicationContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
-            mgr.addOnActiveSessionsChangedListener(this, new ComponentName(getApplicationContext(), getClass()));
-            mediaControllerCallback = new MediaControllerCallback();
-        }*/
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -111,32 +106,32 @@ public class NotificationListener extends NotificationListenerService implements
     }
 
     private void checkSongPlaying() {
-        Log.e(TAG, "CONTROLLO CANZONE IN RIPRODUZIONE");
+        //Log.e(TAG, "CONTROLLO CANZONE IN RIPRODUZIONE");
         if (controllers != null) {
             for (MediaController c : controllers) {
                 PlaybackState p = c.getPlaybackState();
                 if (p != null && p.getState() == PlaybackState.STATE_PLAYING) {
-                    Log.e(TAG, "CANZONE IN RIPRODUZIONE PKG:" + c.getPackageName());
+                    //Log.e(TAG, "CANZONE IN RIPRODUZIONE PKG:" + c.getPackageName());
                     MediaMetadata meta = c.getMetadata();
                     if(meta != null) {
                         songTitle = meta.getString(MediaMetadata.METADATA_KEY_TITLE);
-                        Log.e(TAG, "FORZATO CONTROLLO TITOLO: " + songTitle);
+                        //Log.e(TAG, "FORZATO CONTROLLO TITOLO: " + songTitle);
                         showSongTitle();
                     }
                     else
                         songTitle = "";
                 }
                 else {
-                    Log.e(TAG, c.getPackageName() + "NON IN RIPRODUZIONE");
-                    if (p != null) {
+                    /*Log.e(TAG, c.getPackageName() + "NON IN RIPRODUZIONE");
+                    if(p != null) {
                         Log.e(TAG, "PLAYBACKSTATE : " + p.getState());
-                    }
+                    }*/
                     songTitle = "";
                 }
             }
         }
         else
-            Log.e(TAG,"NULL LISTA CONTROLLERS");
+            //Log.e(TAG,"NULL LISTA CONTROLLERS");
             songTitle = "";
     }
 
@@ -146,7 +141,6 @@ public class NotificationListener extends NotificationListenerService implements
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        //Log.e(TAG, "NOTIFICATION RECEIVED");
         if(isSDLRunning && (sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME))) {
             if (showingNotification == null && showingNotification.getKey() != sbn.getKey())
                 showNotification(sbn);
@@ -242,7 +236,6 @@ public class NotificationListener extends NotificationListenerService implements
     public void onListenerConnected() {
         super.onListenerConnected();
         Log.e(TAG,"NOTIFICATION LISTENER CONNECTED");
-        //Toast.makeText(this, R.string.toastNotList, Toast.LENGTH_SHORT).show();
     }
 
     @Override

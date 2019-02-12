@@ -21,15 +21,20 @@ public class MainActivity extends AppCompatActivity {
         SdlReceiver.queryForConnectedService(getApplicationContext());
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateTextView();
+    }
+
     public void onClick(View v){
         switch (v.getId()){
             case R.id.btnSend:
-                //if(isRunning())
+                if(isRunning())
                     send(SdlService.TEXT_TO_SHOW_EXTRA);
                 break;
             case R.id.btnNotifSettings:
-                //startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
-                stopService(new Intent(getApplicationContext(), SdlService.class));
+                startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
                 break;
             case R.id.btnSpeak:
                 if(isRunning())
@@ -46,15 +51,14 @@ public class MainActivity extends AppCompatActivity {
     private void updateTextView() {
         TextView t = findViewById(R.id.txtRunning);
         if(isRunning())
-            t.setText("In esecuzione");
+            t.setText(R.string.textSdlRunning);
         else
-            t.setText("Non in esecuzione");
+            t.setText(R.string.textSdlNotRunning);
     }
 
-    private void send(String contentType) {//TODO non deve inviare se non è avviato, usare SharedPreferences
+    private void send(String contentType) {
         EditText toSend = findViewById(R.id.txtToSend);
         startService(SdlService.getIntent(getApplicationContext(), contentType, toSend.getText().toString()));
-        //startService(NotificationListener.getIntent(getApplicationContext(), NotificationListener.CHECK_SONG_EXTRA));
     }
 
     private boolean isRunning(){
