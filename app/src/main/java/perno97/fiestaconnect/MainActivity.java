@@ -24,11 +24,12 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View v){
         switch (v.getId()){
             case R.id.btnSend:
-                if(isRunning())
+                //if(isRunning())
                     send(SdlService.TEXT_TO_SHOW_EXTRA);
                 break;
             case R.id.btnNotifSettings:
-                startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+                //startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+                stopService(new Intent(getApplicationContext(), SdlService.class));
                 break;
             case R.id.btnSpeak:
                 if(isRunning())

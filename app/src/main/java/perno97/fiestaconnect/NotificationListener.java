@@ -42,6 +42,7 @@ public class NotificationListener extends NotificationListenerService implements
     private MediaSessionManager mgr;
     private MediaControllerCallback mediaControllerCallback;
     private boolean isSDLRunning;
+    private List<MediaController> controllers;
 
     @Override
     public void onCreate() {
@@ -111,37 +112,31 @@ public class NotificationListener extends NotificationListenerService implements
 
     private void checkSongPlaying() {
         Log.e(TAG, "CONTROLLO CANZONE IN RIPRODUZIONE");
-        if(mgr != null) {
-            List<MediaController> controllers = mgr.getActiveSessions(new ComponentName(getApplicationContext(), getClass()));
-            if (controllers != null) {
-                for (MediaController c : controllers) {
-                    PlaybackState p = c.getPlaybackState();
-                    if (p != null && p.getState() == PlaybackState.STATE_PLAYING) {
-                        Log.e(TAG, "CANZONE IN RIPRODUZIONE PKG:" + c.getPackageName());
-                        MediaMetadata meta = c.getMetadata();
-                        if(meta != null) {
-                            songTitle = meta.getString(MediaMetadata.METADATA_KEY_TITLE);
-                            Log.e(TAG, "FORZATO CONTROLLO TITOLO: " + songTitle);
-                            showSongTitle();
-                        }
-                        else
-                            songTitle = "";
+        if (controllers != null) {
+            for (MediaController c : controllers) {
+                PlaybackState p = c.getPlaybackState();
+                if (p != null && p.getState() == PlaybackState.STATE_PLAYING) {
+                    Log.e(TAG, "CANZONE IN RIPRODUZIONE PKG:" + c.getPackageName());
+                    MediaMetadata meta = c.getMetadata();
+                    if(meta != null) {
+                        songTitle = meta.getString(MediaMetadata.METADATA_KEY_TITLE);
+                        Log.e(TAG, "FORZATO CONTROLLO TITOLO: " + songTitle);
+                        showSongTitle();
                     }
-                    else {
-                        Log.e(TAG, c.getPackageName() + "NON IN RIPRODUZIONE");
-                        if (p != null) {
-                            Log.e(TAG, "PLAYBACKSTATE : " + p.getState());
-                        }
+                    else
                         songTitle = "";
+                }
+                else {
+                    Log.e(TAG, c.getPackageName() + "NON IN RIPRODUZIONE");
+                    if (p != null) {
+                        Log.e(TAG, "PLAYBACKSTATE : " + p.getState());
                     }
+                    songTitle = "";
                 }
             }
-            else
-                Log.e(TAG,"NULL LISTA CONTROLLERS");
-                songTitle = "";
         }
         else
-            Log.e(TAG, "NULL MEDIASESSIONMANAGER");
+            Log.e(TAG,"NULL LISTA CONTROLLERS");
             songTitle = "";
     }
 
@@ -208,6 +203,13 @@ public class NotificationListener extends NotificationListenerService implements
         }
 
         @Override
+        public void onPlaybackStateChanged(@Nullable PlaybackState state) {
+            super.onPlaybackStateChanged(state);
+            Log.e(TAG, "PLAYBACK STATE CHANGED");
+            checkSongPlaying();
+        }
+
+        @Override
         public void onSessionDestroyed() {
             super.onSessionDestroyed();
             songTitle = "";
@@ -221,7 +223,8 @@ public class NotificationListener extends NotificationListenerService implements
     }
 
     @Override
-    public void onActiveSessionsChanged(@Nullable List<MediaController> controllers) {
+    public void onActiveSessionsChanged(@Nullable List<MediaController> controllersReceived) {
+        controllers = controllersReceived;
         if(controllers != null && !controllers.isEmpty()) {
             Log.e(TAG, "SIZE = " + controllers.size());
             for(MediaController c : controllers) {
