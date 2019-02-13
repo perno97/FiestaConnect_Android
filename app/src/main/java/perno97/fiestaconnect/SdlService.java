@@ -369,7 +369,6 @@ public class SdlService extends Service implements IProxyListenerALM {
                 show.setSoftButtons(softButtonList);
                 show.setCorrelationID(CorrelationIdGenerator.generateId());
                 try {
-                    proxy.show(START_MESSAGE,null,TextAlignment.CENTERED, CorrelationIdGenerator.generateId());
                     proxy.sendRPCRequest(show);
                     proxy.sendRPCRequest(subscribeOkRequest);
                     proxy.sendRPCRequest(subscribeSeekRightRequest);

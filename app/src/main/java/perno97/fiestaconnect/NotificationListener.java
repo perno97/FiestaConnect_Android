@@ -97,6 +97,7 @@ public class NotificationListener extends NotificationListenerService implements
                 break;
             case STARTED_SDL_COMMAND_EXTRA:
                 isSDLRunning = true;
+                showSongTitle();
                 break;
             case STOPPED_SDL_COMMAND_EXTRA:
                 isSDLRunning = false;
@@ -104,11 +105,6 @@ public class NotificationListener extends NotificationListenerService implements
             default:
                 break;
         }
-    }
-
-    private boolean isRunning(){
-        SharedPreferences preferences = getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-        return preferences.getBoolean(getString(R.string.running), false);
     }
 
     private void checkSongPlaying() {
