@@ -144,12 +144,22 @@ public class NotificationListener extends NotificationListenerService implements
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         if(isSDLRunning && (sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME))) {
+            /*Log.e(TAG, "Key --> " + sbn.getKey() + "\n" +
+                "Group key --> " + sbn.getGroupKey() + "\n" +
+                "Package --> " + sbn.getPackageName() + "\n" +
+                "Tag --> " + sbn.getTag() + "\n" +
+                "Id --> " + sbn.getId() + "\n" +
+                "ChannelId --> " + sbn.getNotification().getChannelId() + "\n" +
+                "User --> " +  sbn.getUser() + "\n" +
+                "Title --> " + sbn.getNotification().extras.getCharSequence("android:title") + "\n" +
+                "Content --> " + sbn.getNotification().extras.getCharSequence("android:text") + "\n"
+            );*/
             if (showingNotification == null)
                 showNotification(sbn);
             else {
                 if (notificationQueue.size() >= QUEUE_SIZE_THRESHOLD)
                     setNotificationQueue(new LinkedList<>());
-                if(notificationQueue.getLast().getKey() != sbn.getKey())
+                if(notificationQueue.size() != 0 && notificationQueue.getLast() != null && notificationQueue.getLast().getKey() != sbn.getKey())
                     notificationQueue.add(sbn);
             }
         }
