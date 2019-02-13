@@ -144,7 +144,7 @@ public class NotificationListener extends NotificationListenerService implements
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         if(isSDLRunning && (sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME))) {
-            if (showingNotification == null && showingNotification.getKey() != sbn.getKey())
+            if (showingNotification == null)
                 showNotification(sbn);
             else {
                 if (notificationQueue.size() >= QUEUE_SIZE_THRESHOLD)
