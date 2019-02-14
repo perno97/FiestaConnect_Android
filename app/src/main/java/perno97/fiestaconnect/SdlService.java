@@ -144,8 +144,6 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
-        context = getApplicationContext();
-        context.startService(NotificationListener.getIntent(context, NotificationListener.STARTED_SDL_COMMAND_EXTRA));
 
         if (proxy == null) {
             try {
@@ -282,6 +280,8 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onCreate() {
         super.onCreate();
+        context = getApplicationContext();
+        context.startService(NotificationListener.getIntent(context, NotificationListener.STARTED_SDL_COMMAND_EXTRA));
         writeSharedPreference(true);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

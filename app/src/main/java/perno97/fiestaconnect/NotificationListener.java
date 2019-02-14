@@ -159,7 +159,7 @@ public class NotificationListener extends NotificationListenerService implements
             else {
                 if (notificationQueue.size() >= QUEUE_SIZE_THRESHOLD)
                     setNotificationQueue(new LinkedList<>());
-                if(notificationQueue.size() != 0 && notificationQueue.getLast() != null && notificationQueue.getLast().getKey() != sbn.getKey())
+                if(notificationQueue.size() == 0 || (notificationQueue.size() != 0 && notificationQueue.getLast() != null && notificationQueue.getLast().getKey() != sbn.getKey()))
                     notificationQueue.add(sbn);
             }
         }
