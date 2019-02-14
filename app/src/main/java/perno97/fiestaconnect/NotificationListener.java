@@ -23,6 +23,8 @@ public class NotificationListener extends NotificationListenerService implements
     private static final String TAG = "notificationListener";
 
     public static final String WHATSAPP_PACK_NAME = "com.whatsapp";
+    public static final String WHATSAPP_INDIVIDUAL_CHANNEL_ID = "individual_chat_defaults_6";
+    public static final String WHATSAPP_GROUP_CHANNEL_ID = "group_chat_defaults_7";
     public static final String TELEGRAM_PACK_NAME = "org.telegram.messenger";
     private static final String MESSENGER_PLUS_PACK_NAME = "org.telegram.plus";
 
@@ -143,24 +145,39 @@ public class NotificationListener extends NotificationListenerService implements
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        if(isSDLRunning && (sbn.getPackageName().equals(WHATSAPP_PACK_NAME) || sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME))) {
-            /*Log.e(TAG, "Key --> " + sbn.getKey() + "\n" +
-                "Group key --> " + sbn.getGroupKey() + "\n" +
-                "Package --> " + sbn.getPackageName() + "\n" +
-                "Tag --> " + sbn.getTag() + "\n" +
-                "Id --> " + sbn.getId() + "\n" +
-                "ChannelId --> " + sbn.getNotification().getChannelId() + "\n" +
-                "User --> " +  sbn.getUser() + "\n" +
-                "Title --> " + sbn.getNotification().extras.getCharSequence("android:title") + "\n" +
-                "Content --> " + sbn.getNotification().extras.getCharSequence("android:text") + "\n"
-            );*/
-            if (showingNotification == null)
-                showNotification(sbn);
-            else {
-                if (notificationQueue.size() >= QUEUE_SIZE_THRESHOLD)
-                    setNotificationQueue(new LinkedList<>());
-                if(notificationQueue.size() == 0 || (notificationQueue.size() != 0 && notificationQueue.getLast() != null && notificationQueue.getLast().getKey() != sbn.getKey()))
-                    notificationQueue.add(sbn);
+        if(isSDLRunning) {
+            if(sbn.getPackageName().equals(WHATSAPP_PACK_NAME)) {
+                /*Log.e(TAG, //"Key --> " + sbn.getKey() + "\n" +
+                    //"Group key --> " + sbn.getGroupKey() + "\n" +
+                    //"Package --> " + sbn.getPackageName() + "\n" +
+                    //"Tag --> " + sbn.getTag() + "\n" +
+                    //"Id --> " + sbn.getId() + "\n" +
+                    "ChannelId --> " + sbn.getNotification().getChannelId() + "\n"// +
+                    //"User --> " +  sbn.getUser() + "\n" +
+                    //"Title --> " + sbn.getNotification().extras.getCharSequence("android:title") + "\n" +
+                    //"Content --> " + sbn.getNotification().extras.getCharSequence("android:text") + "\n"
+                );*/
+                String channelId = sbn.getNotification().getChannelId();
+                //if(channelId.equals(WHATSAPP_GROUP_CHANNEL_ID) || channelId.equals(WHATSAPP_INDIVIDUAL_CHANNEL_ID)) {
+                    if (showingNotification == null)
+                        showNotification(sbn);
+                    else {
+                        if (notificationQueue.size() >= QUEUE_SIZE_THRESHOLD)
+                            setNotificationQueue(new LinkedList<>());
+                        if (notificationQueue.size() == 0 || (notificationQueue.size() != 0 && notificationQueue.getLast() != null && notificationQueue.getLast().getKey() != sbn.getKey()))
+                            notificationQueue.add(sbn);
+                    }
+                //}
+            }
+            else if(sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME)){
+                if (showingNotification == null)
+                    showNotification(sbn);
+                else {
+                    if (notificationQueue.size() >= QUEUE_SIZE_THRESHOLD)
+                        setNotificationQueue(new LinkedList<>());
+                    if (notificationQueue.size() == 0 || (notificationQueue.size() != 0 && notificationQueue.getLast() != null && notificationQueue.getLast().getKey() != sbn.getKey()))
+                        notificationQueue.add(sbn);
+                }
             }
         }
     }
