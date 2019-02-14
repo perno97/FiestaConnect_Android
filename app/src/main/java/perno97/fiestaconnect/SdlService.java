@@ -7,6 +7,8 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
@@ -289,7 +291,10 @@ public class SdlService extends Service implements IProxyListenerALM {
             Notification serviceNotification = new Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(START_MESSAGE)
             .setSmallIcon(R.mipmap.ic_launcher)
+            .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
+                    R.mipmap.ic_launcher))
             .setContentText("Running")
+            .setColor(Color.BLACK)
             .setChannelId(CHANNEL_ID)
                     .build();
             startForeground(NOTIFICATION_ID, serviceNotification);
