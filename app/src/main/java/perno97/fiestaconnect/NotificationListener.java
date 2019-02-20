@@ -158,7 +158,7 @@ public class NotificationListener extends NotificationListenerService implements
                     //"Content --> " + sbn.getNotification().extras.getCharSequence("android:text") + "\n"
                 );*/
                 String channelId = sbn.getNotification().getChannelId();
-                //if(channelId.equals(WHATSAPP_GROUP_CHANNEL_ID) || channelId.equals(WHATSAPP_INDIVIDUAL_CHANNEL_ID)) {
+                if(channelId.equals(WHATSAPP_GROUP_CHANNEL_ID) || channelId.equals(WHATSAPP_INDIVIDUAL_CHANNEL_ID)) {
                     if (showingNotification == null)
                         showNotification(sbn);
                     else {
@@ -167,7 +167,7 @@ public class NotificationListener extends NotificationListenerService implements
                         if (notificationQueue.size() == 0 || (notificationQueue.size() != 0 && notificationQueue.getLast() != null && notificationQueue.getLast().getKey() != sbn.getKey()))
                             notificationQueue.add(sbn);
                     }
-                //}
+                }
             }
             else if(sbn.getPackageName().equals(TELEGRAM_PACK_NAME) || sbn.getPackageName().equals(MESSENGER_PLUS_PACK_NAME)){
                 if (showingNotification == null)
