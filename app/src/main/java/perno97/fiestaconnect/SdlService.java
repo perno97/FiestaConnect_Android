@@ -143,7 +143,7 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
+        boolean forceConnect = intent !=null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);//TODO update
 
         if (proxy == null) {
             try {

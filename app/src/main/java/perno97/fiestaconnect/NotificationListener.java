@@ -3,7 +3,6 @@ package perno97.fiestaconnect;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
@@ -92,13 +91,14 @@ public class NotificationListener extends NotificationListenerService implements
                 removeCurrentNotification();
                 break;
             case DELETE_NOTIFICATION_QUEUE_EXTRA:
-                setNotificationQueue(notificationQueue = new LinkedList<>());
+                resetNotificationQueue();
                 break;
             case CHECK_SONG_EXTRA:
                 checkSongPlaying();
                 break;
             case STARTED_SDL_COMMAND_EXTRA:
                 isSDLRunning = true;
+                resetNotificationQueue();
                 showSongTitle();
                 break;
             case STOPPED_SDL_COMMAND_EXTRA:
@@ -107,6 +107,10 @@ public class NotificationListener extends NotificationListenerService implements
             default:
                 break;
         }
+    }
+
+    private void resetNotificationQueue() {
+        setNotificationQueue(notificationQueue = new LinkedList<>());
     }
 
     private void checkSongPlaying() {
